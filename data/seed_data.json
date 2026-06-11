@@ -1,0 +1,74 @@
+[
+  {
+    "osm_id": "node-1000000001",
+    "name": "Apteka Centrum",
+    "category": "pharmacy",
+    "address": { "street": "Krakowskie Przedmieście 5", "city": "Lublin", "postcode": "20-002" },
+    "location": { "type": "Point", "coordinates": [22.5644, 51.2478] },
+    "opening_hours": "Mo-Fr 08:00-20:00; Sa 09:00-15:00",
+    "phone": "+48 81 123 45 67",
+    "website": null,
+    "cached_at": { "$date": "2026-06-01T00:00:00Z" },
+    "cache_expires_at": { "$date": "2030-01-01T00:00:00Z" }
+  },
+  {
+    "osm_id": "node-1000000002",
+    "name": "Apteka Dbam o Zdrowie",
+    "category": "pharmacy",
+    "address": { "street": "Narutowicza 12", "city": "Lublin", "postcode": "20-004" },
+    "location": { "type": "Point", "coordinates": [22.5601, 51.2441] },
+    "opening_hours": "24/7",
+    "phone": "+48 81 234 56 78",
+    "website": "https://www.doz.pl",
+    "cached_at": { "$date": "2026-06-01T00:00:00Z" },
+    "cache_expires_at": { "$date": "2030-01-01T00:00:00Z" }
+  },
+  {
+    "osm_id": "node-1000000003",
+    "name": "Szpital Kliniczny nr 1",
+    "category": "hospital",
+    "address": { "street": "Staszica 16", "city": "Lublin", "postcode": "20-081" },
+    "location": { "type": "Point", "coordinates": [22.5556, 51.2502] },
+    "opening_hours": "24/7",
+    "phone": "+48 81 532 39 35",
+    "website": null,
+    "cached_at": { "$date": "2026-06-01T00:00:00Z" },
+    "cache_expires_at": { "$date": "2030-01-01T00:00:00Z" }
+  },
+  {
+    "osm_id": "node-1000000004",
+    "name": "Biedronka",
+    "category": "supermarket",
+    "address": { "street": "Lubartowska 24", "city": "Lublin", "postcode": "20-085" },
+    "location": { "type": "Point", "coordinates": [22.5689, 51.2521] },
+    "opening_hours": "Mo-Sa 06:00-22:30; Su 09:00-20:00",
+    "phone": null,
+    "website": "https://www.biedronka.pl",
+    "cached_at": { "$date": "2026-06-01T00:00:00Z" },
+    "cache_expires_at": { "$date": "2030-01-01T00:00:00Z" }
+  },
+  {
+    "osm_id": "node-1000000005",
+    "name": "Kawiarnia Czarna Owca",
+    "category": "cafe",
+    "address": { "street": "Rynek 8", "city": "Lublin", "postcode": "20-111" },
+    "location": { "type": "Point", "coordinates": [22.5678, 51.2480] },
+    "opening_hours": "Mo-Su 10:00-22:00",
+    "phone": null,
+    "website": null,
+    "cached_at": { "$date": "2026-06-01T00:00:00Z" },
+    "cache_expires_at": { "$date": "2030-01-01T00:00:00Z" }
+  },
+  {
+    "osm_id": "node-1000000006",
+    "name": "PKO Bank Polski",
+    "category": "bank",
+    "address": { "street": "Krakowskie Przedmieście 14", "city": "Lublin", "postcode": "20-002" },
+    "location": { "type": "Point", "coordinates": [22.5621, 51.2470] },
+    "opening_hours": "Mo-Fr 09:00-17:00",
+    "phone": "+48 81 532 11 11",
+    "website": "https://www.pkobp.pl",
+    "cached_at": { "$date": "2026-06-01T00:00:00Z" },
+    "cache_expires_at": { "$date": "2030-01-01T00:00:00Z" }
+  }
+]

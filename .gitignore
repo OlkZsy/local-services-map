@@ -1,3 +1,9 @@
+# Python
+venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+
 # Зависимости
 node_modules/
 

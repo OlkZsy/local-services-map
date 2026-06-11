@@ -1,0 +1,11 @@
+fastapi>=0.110,<1.0
+uvicorn[standard]>=0.29
+motor>=3.3
+pydantic>=2.6
+email-validator>=2.0
+python-jose[cryptography]>=3.3
+passlib>=1.7.4
+# bcrypt 4.1+ несовместим с passlib 1.7.4 (известная проблема), поэтому фиксируем версию
+bcrypt==4.0.1
+httpx>=0.27
+python-dotenv>=1.0

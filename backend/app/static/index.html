@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>Mapa Usług — Local Services Map</title>
+
+  <!-- Tailwind CSS (CDN) -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Leaflet 1.9.4 + markercluster -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css">
+
+  <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+
+  <!-- ===== Хедер: поиск + профиль + настройки ===== -->
+  <header id="header">
+    <div class="logo" title="Local Services Map">📍</div>
+
+    <div class="search-box">
+      <span class="search-icon"><i data-lucide="search"></i></span>
+      <input id="search-input" type="text" autocomplete="off"
+             data-i18n-placeholder="search_placeholder" placeholder="Szukaj: apteka...">
+      <button id="search-clear" class="icon-btn" hidden title="✕">✕</button>
+      <div id="autocomplete" class="autocomplete" hidden></div>
+    </div>
+
+    <button id="btn-profile" class="header-btn" title="Profil"><i data-lucide="user"></i></button>
+    <button id="btn-settings" class="header-btn" title="Ustawienia"><i data-lucide="settings"></i></button>
+  </header>
+
+  <!-- ===== Карта ===== -->
+  <div id="map"></div>
+
+  <button id="btn-locate" class="locate-btn" title="Moja lokalizacja"><i data-lucide="locate-fixed"></i></button>
+
+  <!-- ===== Нижняя панель результатов ===== -->
+  <section id="sheet" class="sheet collapsed">
+    <div id="sheet-handle" class="sheet-handle">
+      <div class="grabber"></div>
+      <div class="sheet-header">
+        <span id="results-title"><span data-i18n="results">Wyniki</span>: <b id="results-count">0</b></span>
+        <button id="btn-sort" class="sort-btn">
+          ↕ <span id="sort-label" data-i18n="sort_distance">wg odległości</span>
+        </button>
+      </div>
+    </div>
+    <ul id="results-list" class="results-list"></ul>
+  </section>
+
+  <!-- ===== Панель настроек ===== -->
+  <aside id="panel-settings" class="panel">
+    <div class="panel-header">
+      <h2 data-i18n="settings">Ustawienia</h2>
+      <button class="icon-btn panel-close">✕</button>
+    </div>
+    <div class="panel-body">
+      <label class="field-label">
+        <span data-i18n="radius">Radius wyszukiwania</span>:
+        <b id="radius-value">1.0 km</b>
+      </label>
+      <input id="radius-slider" type="range" min="500" max="5000" step="100" value="1000">
+
+      <label class="field-label" data-i18n="theme">Motyw</label>
+      <div class="segmented" id="theme-switch">
+        <button data-theme="light" class="active" data-i18n="light">Jasny</button>
+        <button data-theme="dark" data-i18n="dark">Ciemny</button>
+      </div>
+
+      <label class="field-label" data-i18n="language">Język</label>
+      <div class="segmented" id="lang-switch">
+        <button data-lang="pl" class="active">PL</button>
+        <button data-lang="ru">RU</button>
+        <button data-lang="en">EN</button>
+      </div>
+
+      <button id="btn-clear-history" class="danger-btn" data-i18n="clear_history">
+        Wyczyść historię wyszukiwań
+      </button>
+    </div>
+  </aside>
+
+  <!-- ===== Панель профиля ===== -->
+  <aside id="panel-profile" class="panel">
+    <div class="panel-header">
+      <h2 data-i18n="profile">Profil</h2>
+      <button class="icon-btn panel-close">✕</button>
+    </div>
+
+    <!-- гость -->
+    <div id="profile-guest" class="panel-body">
+      <p class="muted" data-i18n="guest_hint">Zaloguj się, aby zapisywać ulubione miejsca i historię wyszukiwań.</p>
+      <button id="btn-open-login" class="primary-btn" data-i18n="login">Zaloguj się</button>
+      <button id="btn-open-register" class="secondary-btn" data-i18n="register">Zarejestruj się</button>
+    </div>
+
+    <!-- авторизован -->
+    <div id="profile-user" class="panel-body" hidden>
+      <div class="profile-info">
+        <div class="avatar">👤</div>
+        <div>
+          <div id="profile-name" class="profile-name"></div>
+          <div id="profile-email" class="muted"></div>
+        </div>
+      </div>
+
+      <div class="profile-tabs">
+        <button id="tab-favorites" class="tab active">⭐ <span data-i18n="favorites">Ulubione</span></button>
+        <button id="tab-history" class="tab">🕐 <span data-i18n="history">Historia</span></button>
+      </div>
+
+      <ul id="favorites-list" class="profile-list"></ul>
+      <ul id="history-list" class="profile-list" hidden></ul>
+
+      <button id="btn-logout" class="danger-btn" data-i18n="logout">Wyloguj się</button>
+    </div>
+  </aside>
+
+  <!-- ===== Модальное окно входа/регистрации ===== -->
+  <div id="modal-auth" class="modal-backdrop" hidden>
+    <div class="modal">
+      <div class="modal-tabs">
+        <button id="auth-tab-login" class="tab active" data-i18n="login">Zaloguj się</button>
+        <button id="auth-tab-register" class="tab" data-i18n="register">Zarejestruj się</button>
+        <button class="icon-btn modal-close">✕</button>
+      </div>
+
+      <form id="form-login" class="auth-form">
+        <input name="email" type="email" required data-i18n-placeholder="email" placeholder="Email">
+        <input name="password" type="password" required minlength="6" data-i18n-placeholder="password" placeholder="Hasło">
+        <button type="submit" class="primary-btn" data-i18n="login">Zaloguj się</button>
+      </form>
+
+      <form id="form-register" class="auth-form" hidden>
+        <input name="username" type="text" required minlength="2" data-i18n-placeholder="username" placeholder="Imię i nazwisko">
+        <input name="email" type="email" required data-i18n-placeholder="email" placeholder="Email">
+        <input name="password" type="password" required minlength="6" data-i18n-placeholder="password" placeholder="Hasło (min. 6 znaków)">
+        <button type="submit" class="primary-btn" data-i18n="register">Zarejestruj się</button>
+      </form>
+
+      <p id="auth-error" class="auth-error" hidden></p>
+    </div>
+  </div>
+
+  <div id="overlay" hidden></div>
+  <div id="toast" class="toast" hidden></div>
+
+  <!-- Библиотеки -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+
+  <!-- Приложение (ES-модули) -->
+  <script type="module" src="/static/js/app.js"></script>
+</body>
+</html>
