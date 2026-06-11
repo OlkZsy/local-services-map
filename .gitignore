@@ -1,0 +1,18 @@
+# Зависимости
+node_modules/
+
+# Переменные окружения (строка подключения к MongoDB Atlas!)
+.env
+.env.local
+
+# Логи
+*.log
+npm-debug.log*
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Редакторы
+.vscode/
+.idea/
