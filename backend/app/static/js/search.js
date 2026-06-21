@@ -1,6 +1,8 @@
 import { state, api } from './app.js';
 import { getSearchCenter, drawRadius, renderMarkers, clearMap } from './map.js';
-import { renderResults, sortResults, setSheetState, toast, t, catName } from './ui.js';
+import {
+  renderResults, sortResults, setSheetState, toast, t, catName, showSpinner, hideSpinner,
+} from './ui.js';
 
 let activeIndex = -1;
 
@@ -96,7 +98,6 @@ export async function performSearch(categoryKey, options = {}) {
   const center = options.center || getSearchCenter();
   const radius = options.radius || state.settings.default_radius;
 
-  toast(t('searching'));
   const params = new URLSearchParams({
     lat: center.lat.toFixed(6),
     lng: center.lng.toFixed(6),
@@ -105,6 +106,7 @@ export async function performSearch(categoryKey, options = {}) {
     sort: state.sort,
   });
 
+  showSpinner();
   try {
     const data = await api(`/services/search?${params}`);
     state.results = data.results;
@@ -118,5 +120,7 @@ export async function performSearch(categoryKey, options = {}) {
     toast(`${t('results')}: ${data.count} ${t('places')}`);
   } catch (error) {
     toast(error.message || t('search_error'));
+  } finally {
+    hideSpinner();
   }
 }

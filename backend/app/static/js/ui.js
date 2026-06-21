@@ -26,6 +26,11 @@ const I18N = {
     logged_in: 'Zalogowano', logged_out: 'Wylogowano', registered: 'Konto utworzone',
     places: 'miejsc',
     directions: 'Trasa (Google Maps)', place_unavailable: 'Brak danych o tym miejscu',
+    reviews: 'Opinie', reviews_count: 'opinii', no_reviews: 'Brak opinii — dodaj pierwszą!',
+    write_review: 'Twoja opinia (opcjonalnie)', send: 'Wyślij opinię',
+    login_to_review: 'Zaloguj się, aby dodać opinię.', select_rating: 'Wybierz ocenę',
+    review_saved: 'Opinia zapisana', review_deleted: 'Opinia usunięta',
+    delete: 'Usuń', you: 'Ty',
   },
   en: {
     search_placeholder: 'Search: pharmacy, bank, cafe...',
@@ -49,6 +54,11 @@ const I18N = {
     logged_in: 'Logged in', logged_out: 'Logged out', registered: 'Account created',
     places: 'places',
     directions: 'Directions (Google Maps)', place_unavailable: 'No data for this place',
+    reviews: 'Reviews', reviews_count: 'reviews', no_reviews: 'No reviews yet — be the first!',
+    write_review: 'Your review (optional)', send: 'Submit review',
+    login_to_review: 'Log in to leave a review.', select_rating: 'Pick a rating',
+    review_saved: 'Review saved', review_deleted: 'Review deleted',
+    delete: 'Delete', you: 'You',
   },
 };
 
@@ -98,6 +108,14 @@ export function toast(message) {
   el.hidden = false;
   clearTimeout(toastTimer);
   toastTimer = setTimeout(() => { el.hidden = true; }, 2600);
+}
+
+export function showSpinner() {
+  document.getElementById('spinner').hidden = false;
+}
+
+export function hideSpinner() {
+  document.getElementById('spinner').hidden = true;
 }
 
 export function formatDistance(meters) {
@@ -194,7 +212,7 @@ export function renderResults() {
   list.innerHTML = '';
 
   if (!state.results.length) {
-    list.innerHTML = `<li class="empty-hint">${t('no_results')}</li>`;
+    list.innerHTML = `<li class="empty-hint"><div class="empty-icon">🔍</div>${t('no_results')}</li>`;
     return;
   }
 

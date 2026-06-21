@@ -15,7 +15,7 @@ from starlette.types import Scope
 
 from .config import settings
 from .database import close_db, init_db
-from .routes import auth, categories, services, users
+from .routes import auth, categories, reviews, services, users
 
 logging.basicConfig(level=logging.DEBUG if settings.DEBUG else logging.INFO)
 
@@ -65,6 +65,7 @@ app.include_router(auth.router, prefix="/api/auth", tags=["Авторизаци�
 app.include_router(services.router, prefix="/api/services", tags=["Заведения"])
 app.include_router(users.router, prefix="/api/users", tags=["Пользователь"])
 app.include_router(categories.router, prefix="/api/categories", tags=["Категории"])
+app.include_router(reviews.router, prefix="/api/reviews", tags=["Отзывы"])
 
 
 @app.get("/api/config", tags=["Конфигурация"])
@@ -86,3 +87,21 @@ async def index():
         STATIC_DIR / "index.html",
         headers={"Cache-Control": "no-store, no-cache, must-revalidate, max-age=0"},
     )
+
+
+@app.get("/sw.js", include_in_schema=False)
+async def service_worker():
+    # отдаётся из корня, чтобы scope service worker'а охватывал весь сайт
+    return FileResponse(
+        STATIC_DIR / "sw.js",
+        media_type="application/javascript",
+        headers={
+            "Cache-Control": "no-store, no-cache, must-revalidate, max-age=0",
+            "Service-Worker-Allowed": "/",
+        },
+    )
+
+
+@app.get("/favicon.ico", include_in_schema=False)
+async def favicon():
+    return FileResponse(STATIC_DIR / "icons" / "favicon.png")

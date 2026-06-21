@@ -59,3 +59,7 @@ async def _create_indexes(db: AsyncIOMotorDatabase) -> None:
     await db.favorites.create_index(
         [("user_id", 1), ("service_osm_id", 1)], unique=True
     )
+
+    # reviews: один отзыв на пользователя и место, выборка по месту
+    await db.reviews.create_index([("osm_id", 1), ("user_id", 1)], unique=True)
+    await db.reviews.create_index([("osm_id", 1), ("created_at", -1)])

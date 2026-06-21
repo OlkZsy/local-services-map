@@ -1,6 +1,7 @@
 import { state, api } from './app.js';
 import { t, catIcon, catName, formatDistance, escapeHtml, toast } from './ui.js';
 import { toggleFavorite, isFavorite } from './auth.js';
+import { openReviews } from './reviews.js';
 
 let map = null;
 let userMarker = null;
@@ -128,6 +129,9 @@ function popupHtml(service) {
       ${service.website ? `<div>🌐 <a href="${escapeHtml(service.website)}" target="_blank" rel="noopener">WWW</a></div>` : ''}
       <div class="popup-actions">
         <a class="dir-btn" href="${directionsUrl(service)}" target="_blank" rel="noopener">🧭 ${t('directions')}</a>
+      </div>
+      <div class="popup-actions">
+        <button class="reviews-btn">💬 ${t('reviews')}</button>
         <button class="fav-btn ${isFavorite(service.osm_id) ? 'active' : ''}" data-osm-id="${escapeHtml(service.osm_id)}">
           ⭐ ${isFavorite(service.osm_id) ? '−' : '+'}
         </button>
@@ -140,8 +144,11 @@ function buildMarker(service) {
   const marker = L.marker([service.lat, service.lng], { icon: markerIcon(service) });
   marker.bindPopup(() => popupHtml(service));
   marker.on('popupopen', (event) => {
-    const btn = event.popup.getElement().querySelector('.fav-btn');
-    if (btn) btn.addEventListener('click', () => toggleFavorite(service));
+    const root = event.popup.getElement();
+    const fav = root.querySelector('.fav-btn');
+    if (fav) fav.addEventListener('click', () => toggleFavorite(service));
+    const reviews = root.querySelector('.reviews-btn');
+    if (reviews) reviews.addEventListener('click', () => openReviews(service.osm_id, service.name));
   });
   markersById.set(service.osm_id, marker);
   cluster.addLayer(marker);

@@ -2,6 +2,7 @@ import { initMap } from './map.js';
 import { initSearch } from './search.js';
 import { applyLanguage, applyTheme, initUI, toast, t } from './ui.js';
 import { initAuth } from './auth.js';
+import { initReviews } from './reviews.js';
 
 export const state = {
   config: { maptiler_api_key: null, default_radius: 1000, default_center: { lat: 51.2465, lng: 22.5684 } },
@@ -58,6 +59,7 @@ async function init() {
   initMap();
   initSearch();
   initAuth();
+  initReviews();
   applyLanguage(state.settings.language);
 
   if (window.lucide) window.lucide.createIcons();

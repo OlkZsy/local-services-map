@@ -154,10 +154,42 @@ GET /api/services/search?lat=51.2465&lng=22.5684&radius=1000&category=pharmacy&s
 Частичное обновление — можно передавать любое подмножество полей:
 
 ```json
-{ "default_radius": 1500, "theme": "dark", "language": "ru" }
+{ "default_radius": 1500, "theme": "dark", "language": "en" }
 ```
 
 Ответ — итоговые настройки.
+
+---
+
+## Отзывы — `/api/reviews`
+
+### `GET /api/reviews/{osm_id}`
+
+Сводка и список отзывов о месте (публично; с JWT помечает свой отзыв `is_mine`):
+
+```json
+{
+  "osm_id": "node-123456789",
+  "average": 4.5,
+  "count": 2,
+  "reviews": [
+    { "id": "65a...", "username": "Jan", "rating": 5, "comment": "Super", "created_at": "...", "is_mine": true }
+  ]
+}
+```
+
+### `POST /api/reviews/{osm_id}` 🔒
+
+```json
+{ "rating": 5, "comment": "Polecam" }
+```
+
+`rating` 1–5 (обязателен), `comment` опционален (до 500 символов). Один отзыв на
+пользователя и место: повторная отправка обновляет существующий (upsert).
+
+### `DELETE /api/reviews/{osm_id}` 🔒
+
+Удаляет собственный отзыв. `404`, если его нет.
 
 ---
 
@@ -168,7 +200,7 @@ GET /api/services/search?lat=51.2465&lng=22.5684&radius=1000&category=pharmacy&s
 ```json
 {
   "categories": [
-    { "key": "pharmacy", "icon": "💊", "names": { "pl": "Apteka", "ru": "Аптека", "en": "Pharmacy" } }
+    { "key": "pharmacy", "icon": "💊", "names": { "pl": "Apteka", "en": "Pharmacy" } }
   ]
 }
 ```

@@ -5,6 +5,15 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
   <title>Mapa Usług — Local Services Map</title>
 
+  <!-- PWA -->
+  <link rel="manifest" href="/static/manifest.webmanifest">
+  <meta name="theme-color" content="#2563eb">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <link rel="icon" href="/static/icons/favicon.png" type="image/png">
+  <link rel="apple-touch-icon" href="/static/icons/apple-touch-icon.png">
+
   <!-- Tailwind CSS (CDN) -->
   <script src="https://cdn.tailwindcss.com"></script>
 
@@ -35,6 +44,8 @@
 
   <!-- ===== Карта ===== -->
   <div id="map"></div>
+
+  <div id="spinner" class="spinner" hidden><div class="spinner-ring"></div></div>
 
   <button id="btn-locate" class="locate-btn" title="Moja lokalizacja"><i data-lucide="locate-fixed"></i></button>
 
@@ -145,6 +156,37 @@
     </div>
   </div>
 
+  <!-- ===== Модальное окно отзывов ===== -->
+  <div id="modal-reviews" class="modal-backdrop" hidden>
+    <div class="modal">
+      <div class="modal-tabs">
+        <h2 id="reviews-title" class="modal-title">Opinie</h2>
+        <button class="icon-btn reviews-close">✕</button>
+      </div>
+
+      <div id="reviews-summary" class="reviews-summary"></div>
+
+      <form id="form-review" class="review-form" hidden>
+        <div class="stars-input" id="stars-input">
+          <button type="button" data-value="1">★</button>
+          <button type="button" data-value="2">★</button>
+          <button type="button" data-value="3">★</button>
+          <button type="button" data-value="4">★</button>
+          <button type="button" data-value="5">★</button>
+        </div>
+        <textarea id="review-comment" rows="2" maxlength="500"
+                  data-i18n-placeholder="write_review" placeholder="Twoja opinia (opcjonalnie)"></textarea>
+        <button type="submit" class="primary-btn" data-i18n="send">Wyślij opinię</button>
+      </form>
+
+      <p id="reviews-login-hint" class="muted" hidden data-i18n="login_to_review">
+        Zaloguj się, aby dodać opinię.
+      </p>
+
+      <ul id="reviews-list" class="reviews-list"></ul>
+    </div>
+  </div>
+
   <div id="overlay" hidden></div>
   <div id="toast" class="toast" hidden></div>
 
@@ -155,5 +197,11 @@
 
   <!-- Приложение (ES-модули) -->
   <script type="module" src="/static/js/app.js"></script>
+
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => navigator.serviceWorker.register('/sw.js').catch(() => {}));
+    }
+  </script>
 </body>
 </html>
