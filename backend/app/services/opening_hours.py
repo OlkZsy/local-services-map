@@ -1,23 +1,22 @@
-"""Упрощённый парсер OSM-формата opening_hours (без внешних зависимостей).
+"""Simplified parser for the OSM opening_hours format (no external dependencies).
 
-Поддерживаются наиболее распространённые в OSM записи:
+It supports the most common OSM notations:
     24/7
     Mo-Fr 08:00-20:00; Sa 09:00-15:00
     Mo-Sa 07:00-22:00; Su off
     Mo,We,Fr 10:00-18:00
-    08:00-20:00                     (без дней — каждый день)
-    Mo-Fr 08:00-12:00,13:00-17:00   (перерыв)
-    Fr-Sa 22:00-02:00               (ночные интервалы)
+    08:00-20:00                     (no days — every day)
+    Mo-Fr 08:00-12:00,13:00-17:00   (a break)
+    Fr-Sa 22:00-02:00               (overnight intervals)
 
-Если строка не распознана или отсутствует — возвращается None («нет данных»).
-Время берётся локальное серверное (для локальной демонстрации в Польше этого
-достаточно).
+If the string is not recognized or is missing, None ("no data") is returned.
+The local server time is used (good enough for a local demo in Poland).
 """
 
 from datetime import datetime
 
 DAYS = ["Mo", "Tu", "We", "Th", "Fr", "Sa", "Su"]
-_IGNORED_TOKENS = {"PH", "SH"}  # праздники/школьные каникулы не поддерживаем
+_IGNORED_TOKENS = {"PH", "SH"}  # public holidays / school holidays are not supported
 
 
 def _parse_days(part: str) -> list[int] | None:
@@ -33,7 +32,7 @@ def _parse_days(part: str) -> list[int] | None:
             i, j = DAYS.index(start), DAYS.index(end)
             if i <= j:
                 days.update(range(i, j + 1))
-            else:  # например Sa-Mo — диапазон через воскресенье
+            else:  # e.g. Sa-Mo — a range wrapping through Sunday
                 days.update(range(i, 7))
                 days.update(range(0, j + 1))
         elif token in DAYS:
@@ -44,7 +43,7 @@ def _parse_days(part: str) -> list[int] | None:
 
 
 def _parse_time(value: str) -> int | None:
-    """«HH:MM» -> минуты от полуночи (24:00 = 1440)."""
+    """"HH:MM" -> minutes since midnight (24:00 = 1440)."""
     hours, sep, minutes = value.strip().partition(":")
     if not sep:
         return None
@@ -58,7 +57,7 @@ def _parse_time(value: str) -> int | None:
 
 
 def _build_schedule(value: str) -> dict[int, list[tuple[int, int]]] | None:
-    """День недели (0=Mo) -> интервалы в минутах. None, если формат не распознан."""
+    """Day of week (0=Mo) -> intervals in minutes. None if the format is not recognized."""
     schedule: dict[int, list[tuple[int, int]]] = {}
     parsed_any = False
 
@@ -67,14 +66,14 @@ def _build_schedule(value: str) -> dict[int, list[tuple[int, int]]] | None:
         if not rule:
             continue
         first, _, rest = rule.partition(" ")
-        if first[0].isdigit():  # правило без дней: «08:00-20:00»
+        if first[0].isdigit():  # rule without days: "08:00-20:00"
             days: list[int] = list(range(7))
             times_part = rule
         else:
             days_parsed = _parse_days(first)
             if days_parsed is None:
                 return None
-            if not days_parsed:  # правило только про PH/SH — пропускаем
+            if not days_parsed:  # rule only about PH/SH — skip it
                 continue
             days = days_parsed
             times_part = rest.strip() or "off"
@@ -96,14 +95,14 @@ def _build_schedule(value: str) -> dict[int, list[tuple[int, int]]] | None:
             intervals.append((start, end))
 
         for day in days:
-            schedule[day] = intervals  # позднее правило перекрывает раннее (семантика OSM)
+            schedule[day] = intervals  # a later rule overrides an earlier one (OSM semantics)
         parsed_any = True
 
     return schedule if parsed_any else None
 
 
 def is_open_now(value: str | None, now: datetime | None = None) -> bool | None:
-    """True — открыто, False — закрыто, None — нет данных / формат не распознан."""
+    """True — open, False — closed, None — no data / format not recognized."""
     if not value:
         return None
     value = value.strip()
@@ -112,7 +111,7 @@ def is_open_now(value: str | None, now: datetime | None = None) -> bool | None:
 
     try:
         schedule = _build_schedule(value)
-    except Exception:  # noqa: BLE001 — любой сбой разбора трактуем как «нет данных»
+    except Exception:  # noqa: BLE001 — treat any parsing failure as "no data"
         return None
     if schedule is None:
         return None
@@ -125,10 +124,10 @@ def is_open_now(value: str | None, now: datetime | None = None) -> bool | None:
         if end >= start:
             if start <= minutes < end:
                 return True
-        elif minutes >= start:  # ночной интервал, например 22:00-02:00
+        elif minutes >= start:  # overnight interval, e.g. 22:00-02:00
             return True
 
-    # хвост ночного интервала предыдущего дня (открылись вчера, закроются сегодня)
+    # tail of the previous day's overnight interval (opened yesterday, closes today)
     prev_day = (day - 1) % 7
     for start, end in schedule.get(prev_day, []):
         if end < start and minutes < end:

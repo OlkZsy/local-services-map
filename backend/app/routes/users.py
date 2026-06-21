@@ -1,4 +1,4 @@
-"""Маршруты пользователя: /api/users/* (все требуют JWT)."""
+"""User routes: /api/users/* (all require JWT)."""
 
 from datetime import datetime, timezone
 
@@ -70,7 +70,7 @@ async def add_favorite(data: FavoriteCreate, user: dict = Depends(get_current_us
     if service is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Заведение не найдено в кеше — сначала выполните поиск",
+            detail="Service not found in the cache — run a search first",
         )
 
     favorite = {
@@ -82,7 +82,7 @@ async def add_favorite(data: FavoriteCreate, user: dict = Depends(get_current_us
         "note": data.note,
         "saved_at": datetime.now(timezone.utc),
     }
-    # upsert: повторное добавление не создаёт дубль (уникальный индекс user_id+osm_id)
+    # upsert: re-adding does not create a duplicate (unique index on user_id+osm_id)
     await db.favorites.update_one(
         {"user_id": user["_id"], "service_osm_id": service["osm_id"]},
         {"$set": favorite},
@@ -98,9 +98,9 @@ async def remove_favorite(osm_id: str, user: dict = Depends(get_current_user)):
     )
     if result.deleted_count == 0:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Нет такого избранного"
+            status_code=status.HTTP_404_NOT_FOUND, detail="No such favorite"
         )
-    return {"message": "Удалено из избранного"}
+    return {"message": "Removed from favorites"}
 
 
 @router.patch("/settings", response_model=UserSettings)

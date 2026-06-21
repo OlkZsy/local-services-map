@@ -1,4 +1,4 @@
-"""Маршруты отзывов и оценок: /api/reviews/*"""
+"""Reviews and ratings routes: /api/reviews/*"""
 
 from datetime import datetime, timezone
 
@@ -36,7 +36,7 @@ async def list_reviews(osm_id: str, user: dict | None = Depends(get_current_user
 @router.post("/{osm_id}", response_model=ReviewOut, status_code=status.HTTP_201_CREATED)
 async def add_review(osm_id: str, data: ReviewCreate, user: dict = Depends(get_current_user)):
     db = get_db()
-    # один отзыв на пользователя и место: повторная отправка обновляет существующий
+    # one review per user and place: resubmitting updates the existing one
     await db.reviews.update_one(
         {"osm_id": osm_id, "user_id": user["_id"]},
         {
@@ -60,6 +60,6 @@ async def delete_review(osm_id: str, user: dict = Depends(get_current_user)):
     result = await get_db().reviews.delete_one({"osm_id": osm_id, "user_id": user["_id"]})
     if result.deleted_count == 0:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Отзыв не найден"
+            status_code=status.HTTP_404_NOT_FOUND, detail="Review not found"
         )
-    return {"message": "Отзыв удалён"}
+    return {"message": "Review deleted"}

@@ -1,9 +1,9 @@
-"""Кеширование данных Overpass в MongoDB.
+"""Caching of Overpass data in MongoDB.
 
-Область кеша определяется парой «категория + geohash ячейки». При промахе
-данные загружаются из Overpass радиусом COVER_RADIUS_M вокруг центра ячейки
-(с запасом на максимальный радиус поиска), апсертятся по osm_id и живут до
-истечения TTL. Если Overpass недоступен, отдаётся имеющийся кеш.
+A cache area is identified by the pair "category + cell geohash". On a miss,
+data is fetched from Overpass within COVER_RADIUS_M around the cell center
+(with headroom for the maximum search radius), upserted by osm_id and kept
+until the TTL expires. If Overpass is unavailable, the existing cache is served.
 """
 
 import logging
@@ -18,14 +18,14 @@ from .geohash import decode_center, encode
 logger = logging.getLogger(__name__)
 
 GEOHASH_PRECISION = 5
-# половина диагонали ячейки (~3.5 км) + максимальный радиус поиска (5 км)
+# half of the cell diagonal (~3.5 km) + the maximum search radius (5 km)
 COVER_RADIUS_M = 8500
 
 
 async def search_services(
     db: AsyncIOMotorDatabase, category: dict, lat: float, lng: float, radius: int
 ) -> list[dict]:
-    """Возвращает заведения категории в радиусе, отсортированные по расстоянию."""
+    """Returns services of the category within the radius, sorted by distance."""
     now = datetime.now(timezone.utc)
     geohash = encode(lat, lng, GEOHASH_PRECISION)
 
@@ -61,7 +61,7 @@ async def _refresh_area(
         )
     except Exception as exc:  # noqa: BLE001
         logger.warning(
-            "Overpass API недоступен (%s) — отдаём данные из имеющегося кеша", exc
+            "Overpass API is unavailable (%s) — serving data from the existing cache", exc
         )
         return
 
@@ -79,5 +79,5 @@ async def _refresh_area(
         upsert=True,
     )
     logger.info(
-        "Кеш обновлён: %s/%s — %d заведений", category["key"], geohash, len(services)
+        "Cache refreshed: %s/%s — %d services", category["key"], geohash, len(services)
     )

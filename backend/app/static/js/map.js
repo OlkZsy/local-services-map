@@ -16,8 +16,8 @@ export function initMap() {
 
   const key = state.config.maptiler_api_key;
   if (key) {
-    // Тайлы MapTiler отдаются 512x512, поэтому нужны tileSize/zoomOffset,
-    // иначе карта рендерится не в том масштабе и выглядит размытой.
+    // MapTiler tiles are served at 512x512, so tileSize/zoomOffset are needed,
+    // otherwise the map renders at the wrong scale and looks blurry.
     L.tileLayer(`https://api.maptiler.com/maps/streets-v2/{z}/{x}/{y}@2x.png?key=${key}`, {
       attribution: '&copy; <a href="https://www.maptiler.com/">MapTiler</a> &copy; OpenStreetMap contributors',
       tileSize: 512,
@@ -182,8 +182,8 @@ function haversine(lat1, lng1, lat2, lng2) {
   return 2 * R * Math.asin(Math.sqrt(a));
 }
 
-// Открыть карточку одного места (из закладок): свежие детали берём из кеша,
-// если их там уже нет — показываем сохранённые в закладке данные.
+// Open the card for a single place (from favorites): fresh details come from the
+// cache; if they are no longer there, show the data saved in the favorite.
 export async function showPlace(osmId, fallback) {
   let service = null;
   try {

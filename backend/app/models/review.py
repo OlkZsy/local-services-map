@@ -1,4 +1,4 @@
-"""Pydantic-схемы отзывов и оценок мест."""
+"""Pydantic schemas for place reviews and ratings."""
 
 from datetime import datetime
 

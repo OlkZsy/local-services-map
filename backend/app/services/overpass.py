@@ -1,4 +1,4 @@
-"""Запросы к Overpass API (OpenStreetMap) — источник данных о заведениях."""
+"""Requests to the Overpass API (OpenStreetMap) — the source of service data."""
 
 import httpx
 
@@ -9,7 +9,7 @@ USER_AGENT = "local-services-map/1.0 (educational diploma project)"
 async def fetch_services(
     category: dict, lat: float, lng: float, radius_m: int
 ) -> list[dict]:
-    """Загружает заведения категории в радиусе radius_m метров от точки."""
+    """Fetches services of the category within radius_m meters of the point."""
     osm_key, osm_value = category["osm_key"], category["osm_value"]
     query = f"""
 [out:json][timeout:25];
@@ -35,7 +35,7 @@ out center tags;
 
 
 def _parse_element(element: dict, category: dict) -> dict | None:
-    # node имеет lat/lon напрямую, way/relation — в поле center (out center)
+    # a node has lat/lon directly; way/relation have it in the center field (out center)
     if "lat" in element:
         lat, lng = element["lat"], element["lon"]
     elif "center" in element:
@@ -46,7 +46,7 @@ def _parse_element(element: dict, category: dict) -> dict | None:
     tags = element.get("tags", {})
     name = tags.get("name") or tags.get("brand") or tags.get("operator")
     if not name:
-        return None  # безымянные объекты бесполезны в списке результатов
+        return None  # unnamed objects are useless in the results list
 
     street = tags.get("addr:street")
     housenumber = tags.get("addr:housenumber")

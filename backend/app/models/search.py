@@ -1,4 +1,4 @@
-"""Pydantic-схемы истории поисков и избранного."""
+"""Pydantic schemas for search history and favorites."""
 
 from datetime import datetime
 

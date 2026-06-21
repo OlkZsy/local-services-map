@@ -1,6 +1,6 @@
-"""Геокодирование через Nominatim (OSM): адрес -> координаты.
+"""Geocoding via Nominatim (OSM): address -> coordinates.
 
-Лимит Nominatim — 1 запрос в секунду, обязателен заголовок User-Agent.
+Nominatim's limit is 1 request per second, and a User-Agent header is required.
 """
 
 import httpx

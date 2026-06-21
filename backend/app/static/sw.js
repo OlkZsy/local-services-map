@@ -1,6 +1,6 @@
-// Service worker: офлайн-доступ через стратегию network-first.
-// Онлайн всегда отдаётся свежая версия (правки сразу видны), а кеш служит
-// запасным вариантом без сети.
+// Service worker: offline access via a network-first strategy.
+// When online, a fresh version is always served (edits are visible immediately),
+// while the cache acts as a fallback when there is no network.
 
 const CACHE = 'lsm-v1';
 
@@ -37,13 +37,13 @@ self.addEventListener('fetch', (event) => {
   if (request.method !== 'GET') return;
 
   const url = new URL(request.url);
-  // Запросы к API не кешируем — они всегда должны идти в сеть.
+  // Don't cache API requests — they must always go to the network.
   if (url.pathname.startsWith('/api/')) return;
 
   event.respondWith(
     fetch(request)
       .then((response) => {
-        // обновляем кеш свежей копией same-origin ресурсов
+        // refresh the cache with a fresh copy of same-origin resources
         if (url.origin === self.location.origin && response.ok) {
           const copy = response.clone();
           caches.open(CACHE).then((cache) => cache.put(request, copy));

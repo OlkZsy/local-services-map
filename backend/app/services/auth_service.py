@@ -1,4 +1,4 @@
-"""JWT-токены, хеширование паролей и FastAPI-зависимости текущего пользователя."""
+"""JWT tokens, password hashing and FastAPI dependencies for the current user."""
 
 from datetime import datetime, timedelta, timezone
 
@@ -17,7 +17,7 @@ _bearer = HTTPBearer(auto_error=False)
 
 _CREDENTIALS_ERROR = HTTPException(
     status_code=status.HTTP_401_UNAUTHORIZED,
-    detail="Недействительный или отсутствующий токен",
+    detail="Invalid or missing token",
     headers={"WWW-Authenticate": "Bearer"},
 )
 
@@ -50,7 +50,7 @@ async def _resolve_user(token: str) -> dict | None:
 async def get_current_user(
     credentials: HTTPAuthorizationCredentials | None = Depends(_bearer),
 ) -> dict:
-    """Обязательная авторизация: 401, если токена нет или он невалиден."""
+    """Required authentication: 401 if the token is missing or invalid."""
     if credentials is None:
         raise _CREDENTIALS_ERROR
     user = await _resolve_user(credentials.credentials)
@@ -62,7 +62,7 @@ async def get_current_user(
 async def get_current_user_optional(
     credentials: HTTPAuthorizationCredentials | None = Depends(_bearer),
 ) -> dict | None:
-    """Необязательная авторизация: гость получает None вместо 401."""
+    """Optional authentication: a guest gets None instead of a 401."""
     if credentials is None:
         return None
     return await _resolve_user(credentials.credentials)

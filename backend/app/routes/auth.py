@@ -1,4 +1,4 @@
-"""Маршруты авторизации: /api/auth/*"""
+"""Authentication routes: /api/auth/*"""
 
 from datetime import datetime, timezone
 
@@ -18,7 +18,7 @@ router = APIRouter()
 
 def _to_user_out(user: dict) -> UserOut:
     raw_settings = dict(user.get("settings", {}))
-    # язык ru больше не поддерживается — мягко приводим старые записи к pl
+    # the ru language is no longer supported — gently migrate old records to pl
     if raw_settings.get("language") not in ("pl", "en"):
         raw_settings["language"] = "pl"
     return UserOut(
@@ -36,7 +36,7 @@ async def register(data: UserCreate):
     if await db.users.find_one({"email": data.email}):
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
-            detail="Пользователь с таким email уже существует",
+            detail="A user with this email already exists",
         )
 
     now = datetime.now(timezone.utc)
@@ -60,7 +60,7 @@ async def login(data: UserLogin):
     if user is None or not verify_password(data.password, user["password_hash"]):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Неверный email или пароль",
+            detail="Invalid email or password",
         )
 
     await db.users.update_one(
@@ -72,8 +72,8 @@ async def login(data: UserLogin):
 
 @router.post("/logout")
 async def logout():
-    # JWT не хранит состояние на сервере — клиент просто удаляет токен.
-    return {"message": "Выход выполнен"}
+    # JWT keeps no server-side state — the client simply discards the token.
+    return {"message": "Logged out"}
 
 
 @router.get("/me", response_model=UserOut)

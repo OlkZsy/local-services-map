@@ -26,7 +26,7 @@
 </head>
 <body>
 
-  <!-- ===== Хедер: поиск + профиль + настройки ===== -->
+  <!-- ===== Header: search + profile + settings ===== -->
   <header id="header">
     <div class="logo" title="Local Services Map">📍</div>
 
@@ -42,14 +42,14 @@
     <button id="btn-settings" class="header-btn" title="Ustawienia"><i data-lucide="settings"></i></button>
   </header>
 
-  <!-- ===== Карта ===== -->
+  <!-- ===== Map ===== -->
   <div id="map"></div>
 
   <div id="spinner" class="spinner" hidden><div class="spinner-ring"></div></div>
 
   <button id="btn-locate" class="locate-btn" title="Moja lokalizacja"><i data-lucide="locate-fixed"></i></button>
 
-  <!-- ===== Нижняя панель результатов ===== -->
+  <!-- ===== Bottom results sheet ===== -->
   <section id="sheet" class="sheet collapsed">
     <div id="sheet-handle" class="sheet-handle">
       <div class="grabber"></div>
@@ -63,7 +63,7 @@
     <ul id="results-list" class="results-list"></ul>
   </section>
 
-  <!-- ===== Панель настроек ===== -->
+  <!-- ===== Settings panel ===== -->
   <aside id="panel-settings" class="panel">
     <div class="panel-header">
       <h2 data-i18n="settings">Ustawienia</h2>
@@ -94,21 +94,21 @@
     </div>
   </aside>
 
-  <!-- ===== Панель профиля ===== -->
+  <!-- ===== Profile panel ===== -->
   <aside id="panel-profile" class="panel">
     <div class="panel-header">
       <h2 data-i18n="profile">Profil</h2>
       <button class="icon-btn panel-close">✕</button>
     </div>
 
-    <!-- гость -->
+    <!-- guest -->
     <div id="profile-guest" class="panel-body">
       <p class="muted" data-i18n="guest_hint">Zaloguj się, aby zapisywać ulubione miejsca i historię wyszukiwań.</p>
       <button id="btn-open-login" class="primary-btn" data-i18n="login">Zaloguj się</button>
       <button id="btn-open-register" class="secondary-btn" data-i18n="register">Zarejestruj się</button>
     </div>
 
-    <!-- авторизован -->
+    <!-- logged in -->
     <div id="profile-user" class="panel-body" hidden>
       <div class="profile-info">
         <div class="avatar">👤</div>
@@ -130,7 +130,7 @@
     </div>
   </aside>
 
-  <!-- ===== Модальное окно входа/регистрации ===== -->
+  <!-- ===== Login / registration modal ===== -->
   <div id="modal-auth" class="modal-backdrop" hidden>
     <div class="modal">
       <div class="modal-tabs">
@@ -156,7 +156,7 @@
     </div>
   </div>
 
-  <!-- ===== Модальное окно отзывов ===== -->
+  <!-- ===== Reviews modal ===== -->
   <div id="modal-reviews" class="modal-backdrop" hidden>
     <div class="modal">
       <div class="modal-tabs">
@@ -190,24 +190,24 @@
   <div id="overlay" hidden></div>
   <div id="toast" class="toast" hidden></div>
 
-  <!-- Библиотеки -->
+  <!-- Libraries -->
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
   <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
 
-  <!-- Приложение (ES-модули) -->
+  <!-- Application (ES modules) -->
   <script type="module" src="/static/js/app.js"></script>
 
   <script>
     if ('serviceWorker' in navigator) {
       const isLocal = ['localhost', '127.0.0.1', ''].includes(location.hostname);
       if (isLocal) {
-        // На localhost service worker не нужен и мешает разработке (кеширует
-        // старую версию) — снимаем регистрацию и чистим кеши.
+        // On localhost the service worker is not needed and gets in the way of
+        // development (it caches an old version) — unregister it and clear caches.
         navigator.serviceWorker.getRegistrations().then((rs) => rs.forEach((r) => r.unregister()));
         if (window.caches) caches.keys().then((ks) => ks.forEach((k) => caches.delete(k)));
       } else {
-        // На реальном хосте (HTTPS) — включаем PWA: офлайн и установка на телефон.
+        // On a real host (HTTPS) — enable the PWA: offline support and install on phone.
         window.addEventListener('load', () => navigator.serviceWorker.register('/sw.js').catch(() => {}));
       }
     }

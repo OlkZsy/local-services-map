@@ -1,4 +1,4 @@
-"""Маршруты поиска заведений: /api/services/*"""
+"""Service search routes: /api/services/*"""
 
 from datetime import datetime, timezone
 from typing import Literal
@@ -14,7 +14,7 @@ from .categories import get_category
 
 router = APIRouter()
 
-# рейтинг статуса для сортировки «по времени работы»: открытые -> нет данных -> закрытые
+# status ranking for the "by opening hours" sort: open -> no data -> closed
 _STATUS_RANK = {True: 0, None: 1, False: 2}
 
 
@@ -39,8 +39,8 @@ def _to_service_out(doc: dict) -> ServiceOut:
 async def search_services(
     lat: float = Query(..., ge=-90, le=90),
     lng: float = Query(..., ge=-180, le=180),
-    radius: int = Query(1000, ge=500, le=5000, description="Радиус поиска, метры"),
-    category: str = Query(..., description="Ключ категории, например pharmacy"),
+    radius: int = Query(1000, ge=500, le=5000, description="Search radius, meters"),
+    category: str = Query(..., description="Category key, e.g. pharmacy"),
     sort: Literal["distance", "opening_hours"] = "distance",
     user: dict | None = Depends(get_current_user_optional),
 ):
@@ -48,7 +48,7 @@ async def search_services(
     if category_def is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Неизвестная категория: {category}",
+            detail=f"Unknown category: {category}",
         )
 
     db = get_db()
@@ -57,7 +57,7 @@ async def search_services(
 
     if sort == "opening_hours":
         results.sort(key=lambda s: (_STATUS_RANK[s.is_open], s.distance or 0))
-    # sort == "distance": $geoNear уже вернул результаты по возрастанию расстояния
+    # sort == "distance": $geoNear already returned results in ascending distance order
 
     if user is not None:
         await db.search_history.insert_one(
@@ -77,13 +77,13 @@ async def search_services(
 
 @router.get("/geocode")
 async def geocode_address(q: str = Query(..., min_length=2, max_length=200)):
-    """Геокодирование адреса через Nominatim (адрес -> координаты)."""
+    """Geocode an address via Nominatim (address -> coordinates)."""
     try:
         return {"results": await geocoding.geocode(q)}
     except Exception as exc:  # noqa: BLE001
         raise HTTPException(
             status_code=status.HTTP_502_BAD_GATEWAY,
-            detail="Сервис геокодирования недоступен",
+            detail="Geocoding service is unavailable",
         ) from exc
 
 
@@ -92,6 +92,6 @@ async def get_service(osm_id: str):
     doc = await get_db().services_cache.find_one({"osm_id": osm_id})
     if doc is None:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Заведение не найдено"
+            status_code=status.HTTP_404_NOT_FOUND, detail="Service not found"
         )
     return _to_service_out(doc)

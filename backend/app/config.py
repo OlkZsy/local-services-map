@@ -1,11 +1,11 @@
-"""Настройки приложения. Значения читаются из backend/.env (python-dotenv)."""
+"""Application settings. Values are read from backend/.env (python-dotenv)."""
 
 import os
 from pathlib import Path
 
 from dotenv import load_dotenv
 
-BASE_DIR = Path(__file__).resolve().parent.parent  # каталог backend/
+BASE_DIR = Path(__file__).resolve().parent.parent  # backend/ directory
 load_dotenv(BASE_DIR / ".env")
 
 
@@ -25,10 +25,10 @@ class Settings:
     JWT_ALGORITHM: str = os.getenv("JWT_ALGORITHM", "HS256")
     JWT_EXPIRE_MINUTES: int = int(os.getenv("JWT_EXPIRE_MINUTES", "10080"))
 
-    # MapTiler (опционально — без ключа фронтенд переключается на тайлы OSM)
+    # MapTiler (optional — without a key the frontend falls back to OSM tiles)
     MAPTILER_API_KEY: str = os.getenv("MAPTILER_API_KEY", "")
 
-    # Кеширование Overpass
+    # Overpass caching
     CACHE_TTL_DAYS: int = int(os.getenv("CACHE_TTL_DAYS", "7"))
 
     DEBUG: bool = _as_bool(os.getenv("DEBUG", "true"))
