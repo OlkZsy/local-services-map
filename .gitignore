@@ -23,3 +23,7 @@ Thumbs.db
 .vscode/
 .idea/
 .claude/
+
+# Локальные инструменты (туннель)
+cloudflared.exe
+*.exe
