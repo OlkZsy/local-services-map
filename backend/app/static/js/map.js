@@ -19,9 +19,15 @@ export function initMap() {
   // MapTiler при наличии ключа, иначе бесплатные тайлы OpenStreetMap
   const key = state.config.maptiler_api_key;
   if (key) {
-    L.tileLayer(`https://api.maptiler.com/maps/streets-v2/{z}/{x}/{y}.png?key=${key}`, {
+    // Тайлы MapTiler отдаются 512x512 — задаём tileSize/zoomOffset, иначе карта
+    // рендерится не в том масштабе и выглядит размытой. @2x — чёткость на retina.
+    L.tileLayer(`https://api.maptiler.com/maps/streets-v2/{z}/{x}/{y}@2x.png?key=${key}`, {
       attribution: '&copy; <a href="https://www.maptiler.com/">MapTiler</a> &copy; OpenStreetMap contributors',
+      tileSize: 512,
+      zoomOffset: -1,
+      minZoom: 1,
       maxZoom: 19,
+      crossOrigin: true,
     }).addTo(map);
   } else {
     L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
