@@ -4,6 +4,7 @@
 import { state, saveLocalSettings, api } from './app.js';
 import { focusService } from './map.js';
 import { toggleFavorite, isFavorite, syncSettings, clearHistory } from './auth.js';
+import { performSearch } from './search.js';
 
 /* ===================== i18n ===================== */
 
@@ -29,28 +30,7 @@ const I18N = {
     search_error: 'Błąd wyszukiwania', searching: 'Szukam...',
     logged_in: 'Zalogowano', logged_out: 'Wylogowano', registered: 'Konto utworzone',
     places: 'miejsc',
-  },
-  ru: {
-    search_placeholder: 'Поиск: аптека, банк, кафе...',
-    results: 'Результаты', sort_distance: 'по расстоянию', sort_open: 'по времени работы',
-    open: 'Открыто', closed: 'Закрыто', no_data: 'Нет данных',
-    settings: 'Настройки', radius: 'Радиус поиска', theme: 'Тема',
-    light: 'Светлая', dark: 'Тёмная', language: 'Язык',
-    clear_history: 'Очистить историю поисков',
-    profile: 'Профиль', favorites: 'Избранное', history: 'История',
-    login: 'Войти', register: 'Регистрация', logout: 'Выйти',
-    email: 'Email', password: 'Пароль (мин. 6 символов)', username: 'Имя и фамилия',
-    guest_hint: 'Войдите, чтобы сохранять избранные места и историю поисков.',
-    no_results: 'Ничего не найдено. Попробуйте увеличить радиус поиска.',
-    empty_favorites: 'Нет избранных мест.', empty_history: 'История пуста.',
-    login_required: 'Войдите, чтобы добавить в избранное',
-    added_favorite: 'Добавлено в избранное', removed_favorite: 'Удалено из избранного',
-    history_cleared: 'История очищена',
-    geolocation_denied: 'Нет доступа к геолокации — показан Люблин',
-    backend_error: 'Нет соединения с сервером',
-    search_error: 'Ошибка поиска', searching: 'Ищу...',
-    logged_in: 'Вход выполнен', logged_out: 'Выход выполнен', registered: 'Аккаунт создан',
-    places: 'мест',
+    directions: 'Trasa (Google Maps)', place_unavailable: 'Brak danych o tym miejscu',
   },
   en: {
     search_placeholder: 'Search: pharmacy, bank, cafe...',
@@ -73,6 +53,7 @@ const I18N = {
     search_error: 'Search failed', searching: 'Searching...',
     logged_in: 'Logged in', logged_out: 'Logged out', registered: 'Account created',
     places: 'places',
+    directions: 'Directions (Google Maps)', place_unavailable: 'No data for this place',
   },
 };
 
@@ -92,6 +73,7 @@ export function catIcon(category) {
 }
 
 export function applyLanguage(lang) {
+  if (!I18N[lang]) lang = 'pl'; // поддерживаются только pl и en
   state.settings.language = lang;
   document.documentElement.lang = lang;
   document.querySelectorAll('[data-i18n]').forEach((el) => { el.textContent = t(el.dataset.i18n); });
@@ -151,14 +133,19 @@ const SHEET_STATES = ['collapsed', 'half', 'full'];
 export function setSheetState(stateName) {
   const sheet = document.getElementById('sheet');
   SHEET_STATES.forEach((s) => sheet.classList.toggle(s, s === stateName));
+  // кнопка сортировки видна только когда панель раскрыта
+  const sortBtn = document.getElementById('btn-sort');
+  if (sortBtn) sortBtn.hidden = stateName === 'collapsed';
 }
 
 function initSheet() {
   const sheet = document.getElementById('sheet');
   const handle = document.getElementById('sheet-handle');
+  document.getElementById('btn-sort').hidden = true; // изначально панель свёрнута
 
-  // клик по шапке: collapsed <-> half
-  handle.addEventListener('click', () => {
+  // клик по шапке: collapsed <-> half (но не по кнопке сортировки)
+  handle.addEventListener('click', (event) => {
+    if (event.target.closest('#btn-sort')) return;
     setSheetState(sheet.classList.contains('collapsed') ? 'half' : 'collapsed');
   });
 
@@ -167,6 +154,7 @@ function initSheet() {
   let startTop = null;
 
   handle.addEventListener('pointerdown', (event) => {
+    if (event.target.closest('#btn-sort')) return; // клик по кнопке сортировки — не свайп
     dragStartY = event.clientY;
     startTop = sheet.getBoundingClientRect().top;
     sheet.classList.add('dragging');
@@ -282,6 +270,13 @@ function initSettingsPanel() {
     state.settings.default_radius = Number(slider.value);
     saveLocalSettings();
     syncSettings();
+    // сразу обновляем результаты под новый радиус, если поиск уже выполнялся
+    if (state.lastSearch) {
+      performSearch(state.lastSearch.category, {
+        center: { lat: state.lastSearch.lat, lng: state.lastSearch.lng },
+        radius: state.settings.default_radius,
+      });
+    }
   });
 
   document.getElementById('theme-switch').addEventListener('click', (event) => {
@@ -313,7 +308,8 @@ export function initUI() {
   document.getElementById('overlay').addEventListener('click', closePanels);
   document.querySelectorAll('.panel-close').forEach((b) => b.addEventListener('click', closePanels));
 
-  document.getElementById('btn-sort').addEventListener('click', () => {
+  document.getElementById('btn-sort').addEventListener('click', (event) => {
+    event.stopPropagation(); // не передавать клик шторке (иначе она сворачивается)
     state.sort = state.sort === 'distance' ? 'opening_hours' : 'distance';
     updateSortLabel();
     sortResults();

@@ -1,7 +1,7 @@
 /**
  * map.js — карта Leaflet: тайлы, геолокация, маркеры, кластеризация, popup.
  */
-import { state } from './app.js';
+import { state, api } from './app.js';
 import { t, catIcon, catName, formatDistance, escapeHtml, toast } from './ui.js';
 import { toggleFavorite, isFavorite } from './auth.js';
 
@@ -104,8 +104,19 @@ function markerIcon(service) {
   });
 }
 
+/** Ссылка на Google Maps с проложенным маршрутом от текущей позиции до места. */
+function directionsUrl(service) {
+  const destination = `${service.lat},${service.lng}`;
+  let url = `https://www.google.com/maps/dir/?api=1&destination=${destination}&travelmode=walking`;
+  if (state.userLocation) {
+    url += `&origin=${state.userLocation.lat},${state.userLocation.lng}`;
+  }
+  return url;
+}
+
 function popupHtml(service) {
   const address = [service.address?.street, service.address?.city].filter(Boolean).join(', ');
+  const distance = service.distance != null ? ` · 📏 ${formatDistance(service.distance)}` : '';
   const status = service.is_open === true
     ? `<span class="status-open">🟢 ${t('open')}</span>`
     : service.is_open === false
@@ -115,33 +126,38 @@ function popupHtml(service) {
   return `
     <div class="popup">
       <h3>${escapeHtml(service.name)}</h3>
-      <div class="muted">${escapeHtml(catName(service.category))} · 📏 ${formatDistance(service.distance)}</div>
+      <div class="muted">${escapeHtml(catName(service.category))}${distance}</div>
       ${address ? `<div class="muted">📍 ${escapeHtml(address)}</div>` : ''}
       <div>${status}</div>
       ${service.opening_hours ? `<div class="muted">🕐 ${escapeHtml(service.opening_hours)}</div>` : ''}
       ${service.phone ? `<div>📞 <a href="tel:${escapeHtml(service.phone)}">${escapeHtml(service.phone)}</a></div>` : ''}
       ${service.website ? `<div>🌐 <a href="${escapeHtml(service.website)}" target="_blank" rel="noopener">WWW</a></div>` : ''}
-      <button class="fav-btn ${isFavorite(service.osm_id) ? 'active' : ''}" data-osm-id="${escapeHtml(service.osm_id)}">
-        ⭐ ${isFavorite(service.osm_id) ? '−' : '+'}
-      </button>
+      <div class="popup-actions">
+        <a class="dir-btn" href="${directionsUrl(service)}" target="_blank" rel="noopener">🧭 ${t('directions')}</a>
+        <button class="fav-btn ${isFavorite(service.osm_id) ? 'active' : ''}" data-osm-id="${escapeHtml(service.osm_id)}">
+          ⭐ ${isFavorite(service.osm_id) ? '−' : '+'}
+        </button>
+      </div>
     </div>
   `;
+}
+
+function buildMarker(service) {
+  const marker = L.marker([service.lat, service.lng], { icon: markerIcon(service) });
+  marker.bindPopup(() => popupHtml(service));
+  marker.on('popupopen', (event) => {
+    const btn = event.popup.getElement().querySelector('.fav-btn');
+    if (btn) btn.addEventListener('click', () => toggleFavorite(service));
+  });
+  markersById.set(service.osm_id, marker);
+  cluster.addLayer(marker);
+  return marker;
 }
 
 export function renderMarkers(results) {
   cluster.clearLayers();
   markersById.clear();
-
-  for (const service of results) {
-    const marker = L.marker([service.lat, service.lng], { icon: markerIcon(service) });
-    marker.bindPopup(() => popupHtml(service));
-    marker.on('popupopen', (event) => {
-      const btn = event.popup.getElement().querySelector('.fav-btn');
-      if (btn) btn.addEventListener('click', () => toggleFavorite(service));
-    });
-    markersById.set(service.osm_id, marker);
-    cluster.addLayer(marker);
-  }
+  for (const service of results) buildMarker(service);
 }
 
 /** Перерисовка иконок/попапов (после смены языка или избранного). */
@@ -153,6 +169,44 @@ export function focusService(osmId) {
   const marker = markersById.get(osmId);
   if (!marker) return;
   map.setView(marker.getLatLng(), 17);
+  cluster.zoomToShowLayer(marker, () => marker.openPopup());
+}
+
+/** Гаверсинус — расстояние в метрах между двумя точками. */
+function haversine(lat1, lng1, lat2, lng2) {
+  const R = 6371000;
+  const toRad = (d) => (d * Math.PI) / 180;
+  const dLat = toRad(lat2 - lat1);
+  const dLng = toRad(lng2 - lng1);
+  const a = Math.sin(dLat / 2) ** 2
+    + Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLng / 2) ** 2;
+  return 2 * R * Math.asin(Math.sqrt(a));
+}
+
+/**
+ * Показать карточку одного места (из закладок) — как в обычном поиске.
+ * Подгружает свежие детали из кеша; если их нет, использует данные закладки.
+ */
+export async function showPlace(osmId, fallback) {
+  let service = null;
+  try {
+    service = await api(`/services/${encodeURIComponent(osmId)}`);
+  } catch {
+    service = fallback || null;
+  }
+  if (!service) {
+    toast(t('place_unavailable'));
+    return;
+  }
+  if (service.distance == null && state.userLocation) {
+    service.distance = haversine(
+      state.userLocation.lat, state.userLocation.lng, service.lat, service.lng,
+    );
+  }
+
+  const existing = markersById.get(service.osm_id);
+  const marker = existing || buildMarker(service);
+  map.setView([service.lat, service.lng], 17);
   cluster.zoomToShowLayer(marker, () => marker.openPopup());
 }
 

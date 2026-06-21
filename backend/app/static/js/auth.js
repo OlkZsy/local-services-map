@@ -6,7 +6,7 @@ import {
   t, toast, openPanel, closePanels, renderResults,
   applyTheme, applyLanguage, catIcon, catName, formatDistance, escapeHtml,
 } from './ui.js';
-import { flyTo, refreshMarkers } from './map.js';
+import { showPlace, refreshMarkers } from './map.js';
 import { performSearch } from './search.js';
 
 /* ===================== Сессия ===================== */
@@ -99,7 +99,13 @@ function renderFavoritesList(favorites) {
     `;
     li.addEventListener('click', () => {
       closePanels();
-      flyTo(favorite.lat, favorite.lng, 17);
+      showPlace(favorite.service_osm_id, {
+        osm_id: favorite.service_osm_id,
+        name: favorite.service_name,
+        category: favorite.service_category,
+        lat: favorite.lat,
+        lng: favorite.lng,
+      });
     });
     li.querySelector('.fav-btn').addEventListener('click', async (event) => {
       event.stopPropagation();

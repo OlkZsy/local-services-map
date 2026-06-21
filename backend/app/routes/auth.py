@@ -17,12 +17,16 @@ router = APIRouter()
 
 
 def _to_user_out(user: dict) -> UserOut:
+    raw_settings = dict(user.get("settings", {}))
+    # язык ru больше не поддерживается — мягко приводим старые записи к pl
+    if raw_settings.get("language") not in ("pl", "en"):
+        raw_settings["language"] = "pl"
     return UserOut(
         id=str(user["_id"]),
         email=user["email"],
         username=user["username"],
         created_at=user["created_at"],
-        settings=UserSettings(**user.get("settings", {})),
+        settings=UserSettings(**raw_settings),
     )
 
 

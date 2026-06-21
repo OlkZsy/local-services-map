@@ -201,7 +201,25 @@ html.dark .leaflet-tile { filter: brightness(0.7) contrast(1.1); }
 .popup h3 { margin: 0 0 4px; font-size: 15px; }
 .popup .muted { margin: 2px 0; }
 .popup a { color: var(--primary); }
-.popup .fav-btn { margin-top: 8px; }
+.popup-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 10px;
+}
+.popup .dir-btn {
+  flex: 1;
+  text-align: center;
+  padding: 7px 10px;
+  border-radius: 8px;
+  background: var(--primary);
+  color: #fff !important;
+  text-decoration: none;
+  font-size: 13px;
+  font-weight: 600;
+}
+.popup .dir-btn:hover { filter: brightness(1.1); }
+.popup .fav-btn { margin: 0; }
 
 /* ===== Нижняя панель (bottom sheet) ===== */
 .sheet {
