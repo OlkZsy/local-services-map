@@ -11,6 +11,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
+from starlette.types import Scope
 
 from .config import settings
 from .database import close_db, init_db
@@ -19,6 +20,24 @@ from .routes import auth, categories, services, users
 logging.basicConfig(level=logging.DEBUG if settings.DEBUG else logging.INFO)
 
 STATIC_DIR = Path(__file__).resolve().parent / "static"
+
+
+class NoCacheStaticFiles(StaticFiles):
+    """Статика без кеширования — браузер всегда берёт свежие JS/CSS.
+
+    Для локального проекта в разработке это важнее, чем экономия трафика:
+    иначе после правок фронтенда браузер показывает старую закешированную версию.
+    """
+
+    def is_not_modified(self, response_headers, request_headers) -> bool:  # noqa: ARG002
+        return False  # отключаем ответы 304 Not Modified
+
+    async def get_response(self, path: str, scope: Scope):
+        response = await super().get_response(path, scope)
+        response.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
+        response.headers["Pragma"] = "no-cache"
+        response.headers["Expires"] = "0"
+        return response
 
 
 @asynccontextmanager
@@ -58,9 +77,12 @@ async def get_config():
     }
 
 
-app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
+app.mount("/static", NoCacheStaticFiles(directory=STATIC_DIR), name="static")
 
 
 @app.get("/", include_in_schema=False)
 async def index():
-    return FileResponse(STATIC_DIR / "index.html")
+    return FileResponse(
+        STATIC_DIR / "index.html",
+        headers={"Cache-Control": "no-store, no-cache, must-revalidate, max-age=0"},
+    )
