@@ -58,7 +58,6 @@ uvicorn app.main:app --reload --port 8000
 | Файл | Содержание |
 |---|---|
 | [docs/setup_guide.md](docs/setup_guide.md) | Установка и ручные шаги (Atlas, MapTiler, .env) |
-| [docs/deploy_guide.md](docs/deploy_guide.md) | Деплой в интернет (Render + Atlas, бесплатно) |
 | [docs/specification.md](docs/specification.md) | Полная техническая спецификация проекта |
 | [docs/api_reference.md](docs/api_reference.md) | Описание всех эндпоинтов с примерами |
 | [docs/database_schema.md](docs/database_schema.md) | Схемы коллекций MongoDB и индексы |
@@ -78,8 +77,6 @@ local-services-map/
 │   │   │                        # opening_hours (парсер), auth_service (JWT)
 │   │   └── static/              # фронтенд (SPA) + PWA: index.html, css/, js/,
 │   │                            # manifest.webmanifest, sw.js, icons/
-│   ├── Procfile                 # запуск для Railway/Render
-│   ├── runtime.txt             # версия Python для хостинга
 │   ├── .env.example
 │   └── requirements.txt
 ├── docs/                        # документация
