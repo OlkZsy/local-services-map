@@ -44,6 +44,7 @@ export function saveLocalSettings() {
 }
 
 async function init() {
+  console.log('%c[Local Services Map] build v7 — sort/radius/favorites fixes active', 'color:#2563eb;font-weight:bold');
   const saved = localStorage.getItem('settings');
   if (saved) {
     try { Object.assign(state.settings, JSON.parse(saved)); } catch { /* битый JSON */ }
