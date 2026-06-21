@@ -200,7 +200,16 @@
 
   <script>
     if ('serviceWorker' in navigator) {
-      window.addEventListener('load', () => navigator.serviceWorker.register('/sw.js').catch(() => {}));
+      const isLocal = ['localhost', '127.0.0.1', ''].includes(location.hostname);
+      if (isLocal) {
+        // На localhost service worker не нужен и мешает разработке (кеширует
+        // старую версию) — снимаем регистрацию и чистим кеши.
+        navigator.serviceWorker.getRegistrations().then((rs) => rs.forEach((r) => r.unregister()));
+        if (window.caches) caches.keys().then((ks) => ks.forEach((k) => caches.delete(k)));
+      } else {
+        // На реальном хосте (HTTPS) — включаем PWA: офлайн и установка на телефон.
+        window.addEventListener('load', () => navigator.serviceWorker.register('/sw.js').catch(() => {}));
+      }
     }
   </script>
 </body>
