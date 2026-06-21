@@ -1,15 +1,10 @@
-/**
- * auth.js — вход/регистрация (JWT), профиль, избранное, история.
- */
 import { state, api, saveLocalSettings } from './app.js';
 import {
   t, toast, openPanel, closePanels, renderResults,
-  applyTheme, applyLanguage, catIcon, catName, formatDistance, escapeHtml,
+  applyTheme, applyLanguage, catIcon, catName, escapeHtml,
 } from './ui.js';
 import { showPlace, refreshMarkers } from './map.js';
 import { performSearch } from './search.js';
-
-/* ===================== Сессия ===================== */
 
 export function isFavorite(osmId) {
   return state.favorites.has(osmId);
@@ -19,7 +14,7 @@ async function loadSession() {
   if (!state.token) return;
   try {
     state.user = await api('/auth/me');
-    // настройки с сервера имеют приоритет над localStorage
+    // настройки с сервера имеют приоритет над сохранёнными локально
     Object.assign(state.settings, state.user.settings);
     saveLocalSettings();
     applyTheme(state.settings.theme);
@@ -29,7 +24,6 @@ async function loadSession() {
       `${(state.settings.default_radius / 1000).toFixed(1)} km`;
     await loadFavorites();
   } catch {
-    // токен истёк или невалиден
     state.token = null;
     state.user = null;
     localStorage.removeItem('token');
@@ -55,8 +49,6 @@ async function logout() {
   toast(t('logged_out'));
 }
 
-/* ===================== Профиль ===================== */
-
 function renderProfile() {
   const guest = document.getElementById('profile-guest');
   const userBlock = document.getElementById('profile-user');
@@ -70,8 +62,6 @@ function renderProfile() {
     userBlock.hidden = true;
   }
 }
-
-/* ===================== Избранное ===================== */
 
 async function loadFavorites() {
   const data = await api('/users/favorites');
@@ -146,8 +136,6 @@ async function removeFavorite(osmId) {
   refreshMarkers();
 }
 
-/* ===================== История ===================== */
-
 async function loadHistory() {
   const data = await api('/users/history');
   const list = document.getElementById('history-list');
@@ -192,8 +180,6 @@ export async function clearHistory() {
   }
 }
 
-/* ===================== Настройки -> сервер ===================== */
-
 export async function syncSettings() {
   if (!state.user) return;
   try {
@@ -205,10 +191,8 @@ export async function syncSettings() {
         language: state.settings.language,
       },
     });
-  } catch { /* не критично — настройки сохранены локально */ }
+  } catch { /* не критично: настройки уже сохранены локально */ }
 }
-
-/* ===================== Модальное окно ===================== */
 
 function openAuthModal(mode) {
   closePanels();
@@ -264,7 +248,6 @@ async function handleRegister(event) {
         password: form.get('password'),
       },
     });
-    // сразу входим
     const data = await api('/auth/login', {
       method: 'POST',
       body: { email: form.get('email'), password: form.get('password') },
@@ -277,8 +260,6 @@ async function handleRegister(event) {
     showAuthError(error.message);
   }
 }
-
-/* ===================== Инициализация ===================== */
 
 export function initAuth() {
   document.getElementById('btn-profile').addEventListener('click', async () => {
@@ -301,7 +282,6 @@ export function initAuth() {
   document.getElementById('form-register').addEventListener('submit', handleRegister);
   document.getElementById('btn-logout').addEventListener('click', logout);
 
-  // вкладки Избранное / История
   document.getElementById('tab-favorites').addEventListener('click', () => {
     document.getElementById('tab-favorites').classList.add('active');
     document.getElementById('tab-history').classList.remove('active');

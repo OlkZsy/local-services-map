@@ -1,12 +1,7 @@
-/**
- * ui.js — i18n, темы, панели, нижняя шторка, список результатов, toast.
- */
-import { state, saveLocalSettings, api } from './app.js';
+import { state, saveLocalSettings } from './app.js';
 import { focusService } from './map.js';
 import { toggleFavorite, isFavorite, syncSettings, clearHistory } from './auth.js';
 import { performSearch } from './search.js';
-
-/* ===================== i18n ===================== */
 
 const I18N = {
   pl: {
@@ -73,7 +68,7 @@ export function catIcon(category) {
 }
 
 export function applyLanguage(lang) {
-  if (!I18N[lang]) lang = 'pl'; // поддерживаются только pl и en
+  if (!I18N[lang]) lang = 'pl';
   state.settings.language = lang;
   document.documentElement.lang = lang;
   document.querySelectorAll('[data-i18n]').forEach((el) => { el.textContent = t(el.dataset.i18n); });
@@ -95,8 +90,6 @@ export function applyTheme(theme) {
   });
 }
 
-/* ===================== Toast ===================== */
-
 let toastTimer = null;
 
 export function toast(message) {
@@ -106,8 +99,6 @@ export function toast(message) {
   clearTimeout(toastTimer);
   toastTimer = setTimeout(() => { el.hidden = true; }, 2600);
 }
-
-/* ===================== Форматирование ===================== */
 
 export function formatDistance(meters) {
   if (meters == null) return '';
@@ -126,14 +117,11 @@ export function escapeHtml(value) {
   ));
 }
 
-/* ===================== Нижняя шторка ===================== */
-
 const SHEET_STATES = ['collapsed', 'half', 'full'];
 
 export function setSheetState(stateName) {
   const sheet = document.getElementById('sheet');
   SHEET_STATES.forEach((s) => sheet.classList.toggle(s, s === stateName));
-  // кнопка сортировки видна только когда панель раскрыта
   const sortBtn = document.getElementById('btn-sort');
   if (sortBtn) sortBtn.hidden = stateName === 'collapsed';
 }
@@ -141,20 +129,18 @@ export function setSheetState(stateName) {
 function initSheet() {
   const sheet = document.getElementById('sheet');
   const handle = document.getElementById('sheet-handle');
-  document.getElementById('btn-sort').hidden = true; // изначально панель свёрнута
+  document.getElementById('btn-sort').hidden = true;
 
-  // клик по шапке: collapsed <-> half (но не по кнопке сортировки)
   handle.addEventListener('click', (event) => {
     if (event.target.closest('#btn-sort')) return;
     setSheetState(sheet.classList.contains('collapsed') ? 'half' : 'collapsed');
   });
 
-  // перетаскивание (свайп) с привязкой к ближайшему состоянию
   let dragStartY = null;
   let startTop = null;
 
   handle.addEventListener('pointerdown', (event) => {
-    if (event.target.closest('#btn-sort')) return; // клик по кнопке сортировки — не свайп
+    if (event.target.closest('#btn-sort')) return;
     dragStartY = event.clientY;
     startTop = sheet.getBoundingClientRect().top;
     sheet.classList.add('dragging');
@@ -176,17 +162,15 @@ function initSheet() {
     sheet.style.transform = '';
     dragStartY = null;
 
-    if (Math.abs(moved) < 12) return; // это был клик — обработает обработчик клика
+    if (Math.abs(moved) < 12) return; // короткое движение считаем кликом
     const current = SHEET_STATES.find((s) => sheet.classList.contains(s)) || 'collapsed';
     const index = SHEET_STATES.indexOf(current);
     const next = moved < 0
-      ? SHEET_STATES[Math.min(index + 1, 2)]   // свайп вверх — раскрыть
-      : SHEET_STATES[Math.max(index - 1, 0)];  // свайп вниз — свернуть
+      ? SHEET_STATES[Math.min(index + 1, 2)]
+      : SHEET_STATES[Math.max(index - 1, 0)];
     setSheetState(next);
   });
 }
-
-/* ===================== Список результатов ===================== */
 
 function updateSortLabel() {
   const label = document.getElementById('sort-label');
@@ -241,8 +225,6 @@ export function renderResults() {
   }
 }
 
-/* ===================== Панели и оверлей ===================== */
-
 export function openPanel(id) {
   closePanels();
   document.getElementById(id).classList.add('open');
@@ -253,8 +235,6 @@ export function closePanels() {
   document.querySelectorAll('.panel.open').forEach((p) => p.classList.remove('open'));
   document.getElementById('overlay').hidden = true;
 }
-
-/* ===================== Настройки ===================== */
 
 function initSettingsPanel() {
   const slider = document.getElementById('radius-slider');
@@ -270,7 +250,6 @@ function initSettingsPanel() {
     state.settings.default_radius = Number(slider.value);
     saveLocalSettings();
     syncSettings();
-    // сразу обновляем результаты под новый радиус, если поиск уже выполнялся
     if (state.lastSearch) {
       performSearch(state.lastSearch.category, {
         center: { lat: state.lastSearch.lat, lng: state.lastSearch.lng },
@@ -298,8 +277,6 @@ function initSettingsPanel() {
   document.getElementById('btn-clear-history').addEventListener('click', clearHistory);
 }
 
-/* ===================== Инициализация ===================== */
-
 export function initUI() {
   initSheet();
   initSettingsPanel();
@@ -309,7 +286,7 @@ export function initUI() {
   document.querySelectorAll('.panel-close').forEach((b) => b.addEventListener('click', closePanels));
 
   document.getElementById('btn-sort').addEventListener('click', (event) => {
-    event.stopPropagation(); // не передавать клик шторке (иначе она сворачивается)
+    event.stopPropagation(); // не передаём клик шторке, иначе она свернётся
     state.sort = state.sort === 'distance' ? 'opening_hours' : 'distance';
     updateSortLabel();
     sortResults();

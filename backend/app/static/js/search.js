@@ -1,6 +1,3 @@
-/**
- * search.js — строка поиска, автодополнение категорий, выполнение поиска.
- */
 import { state, api } from './app.js';
 import { getSearchCenter, drawRadius, renderMarkers, clearMap } from './map.js';
 import { renderResults, sortResults, setSheetState, toast, t, catName } from './ui.js';

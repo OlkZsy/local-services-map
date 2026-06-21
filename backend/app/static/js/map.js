@@ -1,6 +1,3 @@
-/**
- * map.js — карта Leaflet: тайлы, геолокация, маркеры, кластеризация, popup.
- */
 import { state, api } from './app.js';
 import { t, catIcon, catName, formatDistance, escapeHtml, toast } from './ui.js';
 import { toggleFavorite, isFavorite } from './auth.js';
@@ -9,18 +6,17 @@ let map = null;
 let userMarker = null;
 let radiusCircle = null;
 let cluster = null;
-const markersById = new Map(); // osm_id -> L.Marker
+const markersById = new Map();
 
 export function initMap() {
   const center = state.config.default_center || { lat: 51.2465, lng: 22.5684 };
   map = L.map('map', { zoomControl: false }).setView([center.lat, center.lng], 14);
   L.control.zoom({ position: 'bottomright' }).addTo(map);
 
-  // MapTiler при наличии ключа, иначе бесплатные тайлы OpenStreetMap
   const key = state.config.maptiler_api_key;
   if (key) {
-    // Тайлы MapTiler отдаются 512x512 — задаём tileSize/zoomOffset, иначе карта
-    // рендерится не в том масштабе и выглядит размытой. @2x — чёткость на retina.
+    // Тайлы MapTiler отдаются 512x512, поэтому нужны tileSize/zoomOffset,
+    // иначе карта рендерится не в том масштабе и выглядит размытой.
     L.tileLayer(`https://api.maptiler.com/maps/streets-v2/{z}/{x}/{y}@2x.png?key=${key}`, {
       attribution: '&copy; <a href="https://www.maptiler.com/">MapTiler</a> &copy; OpenStreetMap contributors',
       tileSize: 512,
@@ -68,7 +64,6 @@ function setUserMarker(lat, lng) {
   }).addTo(map);
 }
 
-/** Центр для поиска: геолокация пользователя или центр карты. */
 export function getSearchCenter() {
   if (state.userLocation) return state.userLocation;
   const center = map.getCenter();
@@ -104,7 +99,6 @@ function markerIcon(service) {
   });
 }
 
-/** Ссылка на Google Maps с проложенным маршрутом от текущей позиции до места. */
 function directionsUrl(service) {
   const destination = `${service.lat},${service.lng}`;
   let url = `https://www.google.com/maps/dir/?api=1&destination=${destination}&travelmode=walking`;
@@ -160,7 +154,6 @@ export function renderMarkers(results) {
   for (const service of results) buildMarker(service);
 }
 
-/** Перерисовка иконок/попапов (после смены языка или избранного). */
 export function refreshMarkers() {
   if (state.results.length) renderMarkers(state.results);
 }
@@ -172,7 +165,6 @@ export function focusService(osmId) {
   cluster.zoomToShowLayer(marker, () => marker.openPopup());
 }
 
-/** Гаверсинус — расстояние в метрах между двумя точками. */
 function haversine(lat1, lng1, lat2, lng2) {
   const R = 6371000;
   const toRad = (d) => (d * Math.PI) / 180;
@@ -183,10 +175,8 @@ function haversine(lat1, lng1, lat2, lng2) {
   return 2 * R * Math.asin(Math.sqrt(a));
 }
 
-/**
- * Показать карточку одного места (из закладок) — как в обычном поиске.
- * Подгружает свежие детали из кеша; если их нет, использует данные закладки.
- */
+// Открыть карточку одного места (из закладок): свежие детали берём из кеша,
+// если их там уже нет — показываем сохранённые в закладке данные.
 export async function showPlace(osmId, fallback) {
   let service = null;
   try {
@@ -204,12 +194,7 @@ export async function showPlace(osmId, fallback) {
     );
   }
 
-  const existing = markersById.get(service.osm_id);
-  const marker = existing || buildMarker(service);
+  const marker = markersById.get(service.osm_id) || buildMarker(service);
   map.setView([service.lat, service.lng], 17);
   cluster.zoomToShowLayer(marker, () => marker.openPopup());
-}
-
-export function flyTo(lat, lng, zoom = 16) {
-  map.setView([lat, lng], zoom);
 }
