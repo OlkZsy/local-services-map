@@ -1,11 +1,11 @@
-# Схема базы данных (MongoDB)
+# Schemat bazy danych (MongoDB)
 
-База: `local_services_map`. Все индексы создаются **автоматически** при старте приложения
-(`backend/app/database.py` → `init_db()`), вручную их создавать не нужно.
+Baza: `local_services_map`. Wszystkie indeksy tworzą się **automatycznie** przy starcie aplikacji
+(`backend/app/database.py` → `init_db()`), nie trzeba ich zakładać ręcznie.
 
 ---
 
-## Коллекция `users`
+## Kolekcja `users`
 
 ```json
 {
@@ -23,14 +23,14 @@
 }
 ```
 
-Индексы:
-- `email` — уникальный.
+Indeksy:
+- `email` — unikatowy.
 
 ---
 
-## Коллекция `services_cache`
+## Kolekcja `services_cache`
 
-Кеш заведений из Overpass API.
+Bufor obiektów pobranych z Overpass API.
 
 ```json
 {
@@ -48,20 +48,20 @@
 }
 ```
 
-> **Важно:** GeoJSON хранит координаты в порядке `[долгота, широта]` (`[lng, lat]`).
+> **Ważne:** w formacie GeoJSON współrzędne zapisuje się w kolejności `[długość, szerokość]` (`[lng, lat]`).
 
-Индексы:
-- `location` — `2dsphere` (геопоиск через `$geoNear`);
-- `category` — обычный (фильтрация);
-- `osm_id` — уникальный (upsert без дублей);
-- `cache_expires_at` — TTL (`expireAfterSeconds: 0`, MongoDB сам удаляет устаревшие записи).
+Indeksy:
+- `location` — `2dsphere` (wyszukiwanie przestrzenne przez `$geoNear`);
+- `category` — zwykły (filtrowanie);
+- `osm_id` — unikatowy (upsert bez duplikatów);
+- `cache_expires_at` — TTL (`expireAfterSeconds: 0`, MongoDB sam usuwa przeterminowane wpisy).
 
 ---
 
-## Коллекция `cache_areas`
+## Kolekcja `cache_areas`
 
-Служебная коллекция: какие области уже загружены из Overpass (раздел 9 спецификации,
-ключ кеша = `category + geohash`).
+Kolekcja pomocnicza: zapamiętuje, które obszary zostały już pobrane z Overpass
+(klucz bufora = `category + geohash`).
 
 ```json
 {
@@ -74,17 +74,17 @@
 }
 ```
 
-Geohash точностью 5 символов ≈ ячейка 4.9 × 4.9 км. При промахе кеша данные загружаются
-радиусом 8.5 км вокруг центра ячейки — это покрывает ячейку целиком плюс максимальный
-радиус поиска (5 км), поэтому любой следующий поиск из той же ячейки попадает в кеш.
+Geohash o długości 5 znaków odpowiada komórce ok. 4,9 × 4,9 km. Przy chybieniu bufora dane
+pobierane są w promieniu 8,5 km wokół środka komórki — pokrywa to całą komórkę plus maksymalny
+promień wyszukiwania (5 km), dzięki czemu każde kolejne wyszukiwanie z tej komórki trafia już do bufora.
 
-Индексы:
-- `(category, geohash)` — уникальный составной;
+Indeksy:
+- `(category, geohash)` — unikatowy złożony;
 - `expires_at` — TTL.
 
 ---
 
-## Коллекция `search_history`
+## Kolekcja `search_history`
 
 ```json
 {
@@ -99,12 +99,12 @@ Geohash точностью 5 символов ≈ ячейка 4.9 × 4.9 км. 
 }
 ```
 
-Индексы:
-- `(user_id, searched_at desc)` — составной (выборка и сортировка истории).
+Indeksy:
+- `(user_id, searched_at malejąco)` — złożony (pobieranie i sortowanie historii).
 
 ---
 
-## Коллекция `favorites`
+## Kolekcja `favorites`
 
 ```json
 {
@@ -114,22 +114,22 @@ Geohash точностью 5 символов ≈ ячейка 4.9 × 4.9 км. 
   "service_name": "Apteka Centrum",
   "service_category": "pharmacy",
   "service_location": { "type": "Point", "coordinates": [22.5644, 51.2478] },
-  "note": "Дежурная аптека",
+  "note": "Apteka całodobowa",
   "saved_at": "ISODate"
 }
 ```
 
-Данные заведения денормализованы (снимок на момент сохранения), чтобы избранное
-оставалось доступным даже после очистки кеша по TTL.
+Dane obiektu są zdenormalizowane (zapisane na moment dodania), żeby ulubione pozostały
+dostępne nawet po usunięciu obiektu z bufora przez TTL.
 
-Индексы:
-- `(user_id, service_osm_id)` — уникальный составной (нет дублей).
+Indeksy:
+- `(user_id, service_osm_id)` — unikatowy złożony (bez duplikatów).
 
 ---
 
-## Коллекция `reviews`
+## Kolekcja `reviews`
 
-Отзывы и оценки мест.
+Opinie i oceny obiektów.
 
 ```json
 {
@@ -143,23 +143,23 @@ Geohash точностью 5 символов ≈ ячейка 4.9 × 4.9 км. 
 }
 ```
 
-`username` денормализован, чтобы выводить автора без дополнительного запроса к `users`.
+Pole `username` jest zdenormalizowane, żeby wyświetlać autora bez dodatkowego zapytania do `users`.
 
-Индексы:
-- `(osm_id, user_id)` — уникальный составной (один отзыв на пользователя и место);
-- `(osm_id, created_at desc)` — выборка отзывов места в обратном хронологическом порядке.
+Indeksy:
+- `(osm_id, user_id)` — unikatowy złożony (jedna opinia na użytkownika i obiekt);
+- `(osm_id, created_at malejąco)` — pobieranie opinii obiektu od najnowszych.
 
 ---
 
-## Тестовые данные (опционально)
+## Dane testowe (opcjonalnie)
 
-`data/seed_data.json` содержит 6 заведений Люблина. Импорт:
+Plik `data/seed_data.json` zawiera 6 obiektów z Lublina. Import:
 
 ```bash
 mongoimport --uri "mongodb://localhost:27017/local_services_map" \
   --collection services_cache --jsonArray --file data/seed_data.json
 ```
 
-(или через MongoDB Compass: коллекция `services_cache` → Add Data → Import JSON).
-Это нужно только если хочется проверить работу без доступа к Overpass API —
-при обычной работе кеш наполняется автоматически.
+(albo przez MongoDB Compass: kolekcja `services_cache` → Add Data → Import JSON).
+Przydaje się tylko, gdy chcemy sprawdzić działanie bez dostępu do Overpass API —
+przy normalnej pracy bufor wypełnia się sam.
