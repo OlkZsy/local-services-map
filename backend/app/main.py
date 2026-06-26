@@ -61,11 +61,11 @@ app.add_middleware(
 app.include_router(auth.router, prefix="/api/auth", tags=["Authorization"])
 app.include_router(services.router, prefix="/api/services", tags=["Establishments"])
 app.include_router(users.router, prefix="/api/users", tags=["User"])
-app.include_router(categories.router, prefix="/api/categories", tags=["ategories"])
+app.include_router(categories.router, prefix="/api/categories", tags=["Categories"])
 app.include_router(reviews.router, prefix="/api/reviews", tags=["Reviews"])
 
 
-@app.get("/api/config", tags=["Конфигурация"])
+@app.get("/api/config", tags=["Config"])
 async def get_config():
    
     return {
