@@ -180,7 +180,7 @@ function initSheet() {
     sheet.style.transform = '';
     dragStartY = null;
 
-    if (Math.abs(moved) < 12) return; // короткое движение считаем кликом
+    if (Math.abs(moved) < 12) return; 
     const current = SHEET_STATES.find((s) => sheet.classList.contains(s)) || 'collapsed';
     const index = SHEET_STATES.indexOf(current);
     const next = moved < 0
@@ -304,7 +304,7 @@ export function initUI() {
   document.querySelectorAll('.panel-close').forEach((b) => b.addEventListener('click', closePanels));
 
   document.getElementById('btn-sort').addEventListener('click', (event) => {
-    event.stopPropagation(); // не передаём клик шторке, иначе она свернётся
+    event.stopPropagation();
     state.sort = state.sort === 'distance' ? 'opening_hours' : 'distance';
     updateSortLabel();
     sortResults();

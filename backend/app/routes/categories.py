@@ -1,4 +1,4 @@
-"""Категории заведений и эндпоинт /api/categories."""
+""" /api/categories."""
 
 from fastapi import APIRouter
 

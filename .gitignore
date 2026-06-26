@@ -4,14 +4,14 @@ __pycache__/
 *.pyc
 .pytest_cache/
 
-# Зависимости
+
 node_modules/
 
-# Переменные окружения (строка подключения к MongoDB Atlas!)
+#  MongoDB Atlas
 .env
 .env.local
 
-# Логи
+# logi
 *.log
 npm-debug.log*
 
@@ -19,11 +19,11 @@ npm-debug.log*
 .DS_Store
 Thumbs.db
 
-# Редакторы
+
 .vscode/
 .idea/
 .claude/
 
-# Локальные инструменты (туннель)
+
 cloudflared.exe
 *.exe

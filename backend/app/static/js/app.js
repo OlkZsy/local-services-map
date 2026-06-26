@@ -28,7 +28,7 @@ export async function api(path, options = {}) {
   const response = await fetch(`/api${path}`, { ...options, headers });
   if (!response.ok) {
     let detail = null;
-    try { detail = (await response.json()).detail; } catch { /* ответ не JSON */ }
+    try { detail = (await response.json()).detail; } catch { /* not JSON */ }
     const error = new Error(typeof detail === 'string' ? detail : `HTTP ${response.status}`);
     error.status = response.status;
     throw error;
@@ -43,7 +43,7 @@ export function saveLocalSettings() {
 async function init() {
   const saved = localStorage.getItem('settings');
   if (saved) {
-    try { Object.assign(state.settings, JSON.parse(saved)); } catch { /* битый JSON */ }
+    try { Object.assign(state.settings, JSON.parse(saved)); } catch { /*  JSON */ }
   }
 
   try {

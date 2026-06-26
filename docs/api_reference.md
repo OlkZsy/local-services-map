@@ -1,16 +1,16 @@
-# API Reference
+# Dokumentacja API
 
-Базовый URL: `http://localhost:8000`. Интерактивная документация (Swagger): `http://localhost:8000/docs`.
+Adres bazowy: `http://localhost:8000`. Interaktywna dokumentacja (Swagger): `http://localhost:8000/docs`.
 
-Все защищённые эндпоинты требуют заголовок `Authorization: Bearer <access_token>`.
+Punkty końcowe oznaczone 🔒 wymagają nagłówka `Authorization: Bearer <access_token>`.
 
 ---
 
-## Конфигурация
+## Konfiguracja
 
 ### `GET /api/config`
 
-Публичная конфигурация для фронтенда.
+Publiczna konfiguracja dla frontendu.
 
 ```json
 {
@@ -20,11 +20,11 @@
 }
 ```
 
-`maptiler_api_key: null` означает, что фронтенд использует бесплатные тайлы OpenStreetMap.
+`maptiler_api_key: null` oznacza, że frontend używa darmowych kafelków OpenStreetMap.
 
 ---
 
-## Авторизация — `/api/auth`
+## Autoryzacja — `/api/auth`
 
 ### `POST /api/auth/register`
 
@@ -32,7 +32,7 @@
 { "email": "jan@example.com", "username": "Jan Kowalski", "password": "secret123" }
 ```
 
-Ответ `201`: данные пользователя. Ошибки: `409` — email занят, `422` — невалидные данные.
+Odpowiedź `201`: dane użytkownika. Błędy: `409` — e-mail zajęty, `422` — niepoprawne dane.
 
 ### `POST /api/auth/login`
 
@@ -40,21 +40,21 @@
 { "email": "jan@example.com", "password": "secret123" }
 ```
 
-Ответ `200`:
+Odpowiedź `200`:
 
 ```json
 { "access_token": "eyJhbGciOi...", "token_type": "bearer" }
 ```
 
-Ошибка `401` — неверный email или пароль.
+Błąd `401` — błędny e-mail lub hasło.
 
 ### `POST /api/auth/logout`
 
-JWT не хранит состояния на сервере — клиент удаляет токен. Ответ: `{"message": "..."}`.
+Token JWT nie jest przechowywany na serwerze — klient po prostu go usuwa. Odpowiedź: `{"message": "..."}`.
 
 ### `GET /api/auth/me` 🔒
 
-Данные текущего пользователя:
+Dane zalogowanego użytkownika:
 
 ```json
 {
@@ -68,25 +68,25 @@ JWT не хранит состояния на сервере — клиент у
 
 ---
 
-## Заведения — `/api/services`
+## Obiekty — `/api/services`
 
 ### `GET /api/services/search`
 
-| Параметр | Тип | Описание |
+| Parametr | Typ | Opis |
 |---|---|---|
-| `lat` | float | Широта (обязателен) |
-| `lng` | float | Долгота (обязателен) |
-| `radius` | int | Радиус в метрах, 500–5000 (по умолчанию 1000) |
-| `category` | string | Ключ категории, например `pharmacy` (обязателен) |
-| `sort` | string | `distance` (по умолчанию) или `opening_hours` |
+| `lat` | float | szerokość geograficzna (wymagany) |
+| `lng` | float | długość geograficzna (wymagany) |
+| `radius` | int | promień w metrach, 500–5000 (domyślnie 1000) |
+| `category` | string | klucz kategorii, np. `pharmacy` (wymagany) |
+| `sort` | string | `distance` (domyślnie) albo `opening_hours` |
 
-Пример:
+Przykład:
 
 ```
 GET /api/services/search?lat=51.2465&lng=22.5684&radius=1000&category=pharmacy&sort=distance
 ```
 
-Ответ:
+Odpowiedź:
 
 ```json
 {
@@ -109,29 +109,29 @@ GET /api/services/search?lat=51.2465&lng=22.5684&radius=1000&category=pharmacy&s
 }
 ```
 
-`is_open`: `true` — открыто сейчас, `false` — закрыто, `null` — нет данных о часах работы.
+`is_open`: `true` — otwarte teraz, `false` — zamknięte, `null` — brak danych o godzinach otwarcia.
 
-Если запрос выполнен с JWT-токеном, поиск автоматически записывается в историю пользователя.
+Jeżeli zapytanie zostało wysłane z tokenem JWT, wyszukiwanie zapisuje się w historii użytkownika.
 
-### `GET /api/services/geocode?q=<адрес>`
+### `GET /api/services/geocode?q=<adres>`
 
-Геокодирование адреса через Nominatim (адрес → координаты, до 5 результатов, только Польша).
+Geokodowanie adresu przez Nominatim (adres → współrzędne, do 5 wyników, tylko Polska).
 
 ### `GET /api/services/{osm_id}`
 
-Детали одного заведения из кеша. `404`, если заведения нет в кеше.
+Szczegóły jednego obiektu z bufora. `404`, jeśli obiektu nie ma w buforze.
 
 ---
 
-## Пользователь — `/api/users` (все 🔒)
+## Użytkownik — `/api/users` (wszystkie 🔒)
 
 ### `GET /api/users/history`
 
-Последние 50 поисков: `{"history": [{id, query, category, lat, lng, radius, results_count, searched_at}]}`.
+Ostatnie 50 wyszukiwań: `{"history": [{id, query, category, lat, lng, radius, results_count, searched_at}]}`.
 
 ### `DELETE /api/users/history`
 
-Очищает историю. Ответ: `{"deleted": N}`.
+Czyści historię. Odpowiedź: `{"deleted": N}`.
 
 ### `GET /api/users/favorites`
 
@@ -140,32 +140,32 @@ GET /api/services/search?lat=51.2465&lng=22.5684&radius=1000&category=pharmacy&s
 ### `POST /api/users/favorites`
 
 ```json
-{ "osm_id": "node-123456789", "note": "Дежурная аптека" }
+{ "osm_id": "node-123456789", "note": "Apteka całodobowa" }
 ```
 
-`note` опционально. Повторное добавление не создаёт дубликат (upsert). `404`, если заведения нет в кеше (нужно сначала выполнить поиск).
+`note` jest opcjonalne. Ponowne dodanie nie tworzy duplikatu (upsert). `404`, jeśli obiektu nie ma w buforze (trzeba najpierw wykonać wyszukiwanie).
 
 ### `DELETE /api/users/favorites/{osm_id}`
 
-`404`, если записи нет.
+`404`, jeśli wpisu nie ma.
 
 ### `PATCH /api/users/settings`
 
-Частичное обновление — можно передавать любое подмножество полей:
+Częściowa aktualizacja — można przesłać dowolny podzbiór pól:
 
 ```json
 { "default_radius": 1500, "theme": "dark", "language": "en" }
 ```
 
-Ответ — итоговые настройки.
+Odpowiedź — końcowe ustawienia.
 
 ---
 
-## Отзывы — `/api/reviews`
+## Opinie — `/api/reviews`
 
 ### `GET /api/reviews/{osm_id}`
 
-Сводка и список отзывов о месте (публично; с JWT помечает свой отзыв `is_mine`):
+Średnia ocena i lista opinii o obiekcie (publicznie; z tokenem JWT zaznacza własną opinię polem `is_mine`):
 
 ```json
 {
@@ -184,16 +184,15 @@ GET /api/services/search?lat=51.2465&lng=22.5684&radius=1000&category=pharmacy&s
 { "rating": 5, "comment": "Polecam" }
 ```
 
-`rating` 1–5 (обязателен), `comment` опционален (до 500 символов). Один отзыв на
-пользователя и место: повторная отправка обновляет существующий (upsert).
+`rating` 1–5 (wymagany), `comment` opcjonalny (do 500 znaków). Jedna opinia na użytkownika i obiekt — ponowne wysłanie aktualizuje istniejącą (upsert).
 
 ### `DELETE /api/reviews/{osm_id}` 🔒
 
-Удаляет собственный отзыв. `404`, если его нет.
+Usuwa własną opinię. `404`, jeśli jej nie ma.
 
 ---
 
-## Категории — `/api/categories`
+## Kategorie — `/api/categories`
 
 ### `GET /api/categories`
 
@@ -205,4 +204,4 @@ GET /api/services/search?lat=51.2465&lng=22.5684&radius=1000&category=pharmacy&s
 }
 ```
 
-13 категорий: pharmacy, hospital, clinic, supermarket, convenience, restaurant, cafe, fast_food, bank, atm, fuel, dentist, post_office.
+13 kategorii: pharmacy, hospital, clinic, supermarket, convenience, restaurant, cafe, fast_food, bank, atm, fuel, dentist, post_office.

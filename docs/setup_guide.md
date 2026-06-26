@@ -1,166 +1,135 @@
-# Инструкция по установке и настройке (ручные шаги)
+# Instrukcja instalacji i uruchomienia
 
-Код проекта полностью готов. Вручную нужно сделать только три вещи:
+Kod aplikacji jest gotowy. Ręcznie trzeba zrobić tylko trzy rzeczy:
 
-1. Поднять MongoDB (Atlas **или** локально) — обязательно.
-2. Создать файл `backend/.env` — обязательно.
-3. Получить ключ MapTiler — **опционально** (без него карта работает на тайлах OSM).
+1. Uruchomić bazę MongoDB (Atlas **albo** lokalnie) — wymagane.
+2. Utworzyć plik `backend/.env` — wymagane.
+3. Pobrać klucz MapTiler — **opcjonalnie** (bez niego mapa działa na kafelkach OSM).
 
 ---
 
-## Шаг 1. Python-окружение
+## Krok 1. Środowisko Pythona
 
-Требуется Python 3.11+ (`python --version`).
+Potrzebny jest Python 3.11+ (`python --version`).
 
 ```bash
 cd local-services-map/backend
 
-# создать и активировать виртуальное окружение
+# utworzenie i aktywacja środowiska wirtualnego
 python -m venv venv
 source venv/bin/activate        # Linux / macOS
 venv\Scripts\activate           # Windows
 
-# установить зависимости
+# instalacja zależności
 pip install -r requirements.txt
 ```
 
 ---
 
-## Шаг 2. MongoDB — выберите один из двух вариантов
+## Krok 2. MongoDB — wybierz jeden z dwóch wariantów
 
-### Вариант A: MongoDB Atlas (по спецификации, облачный, бесплатный)
+### Wariant A: MongoDB Atlas (chmurowy, darmowy)
 
-1. Зарегистрируйтесь на <https://www.mongodb.com/cloud/atlas/register> (можно через Google).
-2. После входа нажмите **Create** → выберите кластер **M0 Free** (бесплатный навсегда).
-   - Provider: любой (например AWS), Region: ближайший (например `eu-central-1`, Frankfurt).
-   - Имя кластера можно оставить `Cluster0`.
-3. В появившемся окне **Security Quickstart**:
-   - **Создайте пользователя БД**: придумайте Username (например `app_user`) и Password
-     (нажмите Autogenerate и **сохраните пароль** — он понадобится для `.env`).
-   - **Network Access**: выберите *Add My Current IP Address*.
-     Для учебного проекта проще разрешить доступ отовсюду: вкладка
-     **Network Access** → **Add IP Address** → **Allow access from anywhere** (`0.0.0.0/0`).
-4. Получите строку подключения: **Database** → кнопка **Connect** у кластера →
-   **Drivers** → скопируйте URI вида:
+1. Załóż konto na <https://www.mongodb.com/cloud/atlas/register> (można przez Google).
+2. Po zalogowaniu kliknij **Create** → wybierz klaster **M0 Free** (darmowy na zawsze).
+   - Provider: dowolny (np. AWS), Region: najbliższy (np. `eu-central-1`, Frankfurt).
+   - Nazwę klastra można zostawić `Cluster0`.
+3. W oknie **Security Quickstart**:
+   - **Utwórz użytkownika bazy**: wymyśl Username (np. `app_user`) i Password
+     (kliknij Autogenerate i **zapisz hasło** — przyda się do `.env`).
+   - **Network Access**: wybierz *Add My Current IP Address*. Dla projektu na uczelnię
+     najprościej dać dostęp z każdego adresu: **Network Access** → **Add IP Address** →
+     **Allow access from anywhere** (`0.0.0.0/0`).
+4. Pobierz adres połączenia: **Database** → przycisk **Connect** przy klastrze →
+   **Drivers** → skopiuj adres w stylu:
    ```
    mongodb+srv://app_user:<password>@cluster0.xxxxx.mongodb.net/
    ```
-5. Подставьте реальный пароль вместо `<password>` и запишите строку в `MONGODB_URL`
-   в файле `backend/.env` (шаг 4).
+5. Wstaw prawdziwe hasło w miejsce `<password>` i zapisz adres w `MONGODB_URL`
+   w pliku `backend/.env` (krok 4).
 
-> Базу данных и коллекции создавать вручную **не нужно** — они создаются автоматически
-> при первом обращении. Все индексы (2dsphere, TTL, уникальные) приложение создаёт
-> само при старте.
+> Bazy ani kolekcji nie trzeba zakładać ręcznie — powstają same przy pierwszym użyciu.
+> Wszystkie indeksy (2dsphere, TTL, unikatowe) aplikacja tworzy sama przy starcie.
 
-Для просмотра данных установите [MongoDB Compass](https://www.mongodb.com/products/compass)
-и подключитесь той же строкой URI.
+Do podglądu danych zainstaluj [MongoDB Compass](https://www.mongodb.com/products/compass)
+i połącz się tym samym adresem.
 
-### Вариант B: локальный MongoDB (без интернета и регистрации)
+### Wariant B: lokalny MongoDB (bez internetu i rejestracji)
 
 ```bash
-# Ubuntu/Debian (см. https://www.mongodb.com/docs/manual/installation/ для других ОС)
+# Ubuntu/Debian
 sudo apt install mongodb-org
 sudo systemctl start mongod
 
-# Docker — самый простой способ:
+# albo przez Docker (najprościej):
 docker run -d --name mongo -p 27017:27017 mongo:7
 ```
 
-В `.env` укажите: `MONGODB_URL=mongodb://localhost:27017`.
+W `.env` wpisz: `MONGODB_URL=mongodb://localhost:27017`.
 
 ---
 
-## Шаг 3. Ключ MapTiler (опционально)
+## Krok 3. Klucz MapTiler (opcjonalnie)
 
-Без ключа приложение автоматически использует бесплатные тайлы OpenStreetMap —
-для демонстрации этого достаточно. Если нужны тайлы «как в Google Maps»:
-
-1. Зарегистрируйтесь на <https://cloud.maptiler.com/> (бесплатный тариф: 100 000 тайлов/мес).
-2. В личном кабинете: **API Keys** → скопируйте ключ (или создайте новый).
-3. Запишите его в `MAPTILER_API_KEY` в `backend/.env`.
+1. Załóż konto na <https://cloud.maptiler.com/> (darmowy plan: 100 000 kafelków/miesiąc).
+2. W panelu: **API Keys** → skopiuj klucz.
+3. Wpisz go w `MAPTILER_API_KEY` w pliku `backend/.env`.
 
 ---
 
-## Шаг 4. Файл `.env`
+## Krok 4. Plik `.env`
 
-```bash
-cd backend
-cp .env.example .env
-```
-
-Откройте `backend/.env` и заполните:
+Otwórz `backend/.env` i uzupełnij:
 
 ```env
-MONGODB_URL=mongodb+srv://app_user:ВАШ_ПАРОЛЬ@cluster0.xxxxx.mongodb.net/
+MONGODB_URL=mongodb+srv://app_user:TWOJE_HASLO@cluster0.xxxxx.mongodb.net/
 MONGODB_DB_NAME=local_services_map
 
-JWT_SECRET_KEY=сюда-случайная-строка-минимум-32-символа
+JWT_SECRET_KEY= "tu losowy ciag minimum 32 znaki"
 JWT_ALGORITHM=HS256
 JWT_EXPIRE_MINUTES=10080
 
-MAPTILER_API_KEY=          # пусто = тайлы OSM
+MAPTILER_API_KEY=          # puste = kafelki OSM
 
 CACHE_TTL_DAYS=7
 DEBUG=true
 ```
 
-Секретный ключ JWT удобно сгенерировать так:
+klucz JWT wygodnie wygenerować tak:
 
 ```bash
 python -c "import secrets; print(secrets.token_hex(32))"
 ```
 
-> `.env` уже добавлен в `.gitignore` — он не попадёт в репозиторий.
+> Plik `.env` jest w `.gitignore` — nie trafi do repozytorium git
 
 ---
 
-## Шаг 5. Запуск
+## Krok 5. Uruchomienie
 
 ```bash
 cd backend
-source venv/bin/activate   # если ещё не активировано
+source venv/bin/activate   # jeśli jeszcze nieaktywne
 uvicorn app.main:app --reload --port 8000
 ```
 
-Откройте в браузере:
+Otwórz w przeglądarce:
 
-| URL | Что это |
-|---|---|
-| <http://localhost:8000> | Приложение (карта) |
-| <http://localhost:8000/docs> | Swagger — интерактивная документация API |
+| <http://localhost:8000> | aplikacja (mapa) |
+| <http://localhost:8000/docs> | Swagger — interaktywna dokumentacja API |
 
-В логе при старте должно появиться `MongoDB подключена, индексы созданы`.
-Если вместо этого предупреждение о недоступности MongoDB — проверьте `MONGODB_URL`
-и сетевой доступ в Atlas (Network Access).
+W logu przy starcie powinno pojawić się `MongoDB connected, indexes created`.
+Jeśli zamiast tego jest ostrzeżenie o braku połączenia — sprawdź `MONGODB_URL`
+oraz dostęp sieciowy w Atlasie (Network Access).
 
 ---
 
-## Шаг 6. Проверка работы (smoke-тест)
 
-1. Откройте <http://localhost:8000> — браузер спросит разрешение на геолокацию.
-   - Разрешите → карта центрируется на вас.
-   - Откажите → карта покажет Люблин (51.2465, 22.5684).
-2. В строке поиска начните вводить `apteka` → выберите категорию из выпадающего
-   списка → на карте появятся маркеры (зелёная рамка = открыто, серая = закрыто,
-   жёлтая = нет данных), снизу — панель результатов.
-   *Первый поиск категории в районе занимает 1–3 секунды (запрос к Overpass),
-   повторные — мгновенно (кеш MongoDB).*
-3. Нажмите 👤 → **Zarejestruj się** → создайте аккаунт → добавьте заведение
-   в избранное (⭐) → проверьте, что оно появилось в панели профиля.
-4. Откройте ⚙️ → поменяйте радиус, тему и язык → повторите поиск.
+## Możliwe problemy
 
-Тестирование API без фронтенда — через Swagger (<http://localhost:8000/docs>)
-или REST Client / Postman (см. `docs/api_reference.md`).
-
----
-
-## Частые проблемы
-
-| Симптом | Причина / решение |
-|---|---|
-| `Brak połączenia z serwerem` на фронтенде | Бэкенд не запущен, либо открыт не тот порт |
-| Предупреждение про MongoDB в логе | Неверный `MONGODB_URL`, нет доступа по сети (Atlas → Network Access), не запущен локальный mongod |
-| Поиск возвращает 0 результатов | Слишком маленький радиус, либо Overpass API временно недоступен (попробуйте позже или импортируйте `data/seed_data.json`) |
-| Карта серая, нет тайлов | Нет интернета, либо невалидный ключ MapTiler (уберите ключ из `.env` — включатся тайлы OSM) |
-| Геолокация не работает | Браузеры разрешают геолокацию только на `localhost` или HTTPS; убедитесь, что открыт именно `http://localhost:8000` |
-| Ошибка bcrypt при регистрации | Убедитесь, что установлен `bcrypt==4.0.1` (см. requirements.txt) |
+| `Brak połączenia z serwerem` na froncie | serwer nie jest uruchomiony albo otwarty jest zły port |
+| Ostrzeżenie o MongoDB w logu | błędny `MONGODB_URL`, brak dostępu sieciowego (Atlas → Network Access), nieuruchomiony lokalny mongod |
+| Wyszukiwanie zwraca 0 wyników | za mały promień albo Overpass API chwilowo niedostępny (spróbuj później lub zaimportuj `data/seed_data.json`) |
+| Mapa szara, brak kafelków | brak internetu albo błędny klucz MapTiler (usuń klucz z `.env` — włączą się kafelki OSM) |
+| Geolokalizacja nie działa | przeglądarki pozwalają na geolokalizację tylko na `localhost` lub po HTTPS; upewnij się, że otwarty jest `http://localhost:8000` |
+| Błąd bcrypt przy rejestracji | sprawdź, czy zainstalowany jest `bcrypt==4.0.1` (patrz requirements.txt) |

@@ -1,4 +1,4 @@
-"""Pydantic-схемы пользователя и авторизации."""
+
 
 from datetime import datetime
 from typing import Literal
@@ -13,7 +13,7 @@ class UserSettings(BaseModel):
 
 
 class UserSettingsUpdate(BaseModel):
-    """Частичное обновление настроек (PATCH)."""
+
 
     default_radius: int | None = Field(default=None, ge=500, le=5000)
     language: Literal["pl", "en"] | None = None

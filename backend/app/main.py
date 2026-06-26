@@ -1,6 +1,6 @@
-"""Точка входа FastAPI: REST API + раздача статики (фронтенда).
+""" FastAPI: REST API + stat (front).
 
-Запуск:  uvicorn app.main:app --reload --port 8000  (из каталога backend/)
+startup:  uvicorn app.main:app --reload --port 8000  (from (cd backend/))
 """
 
 import logging
@@ -23,14 +23,11 @@ STATIC_DIR = Path(__file__).resolve().parent / "static"
 
 
 class NoCacheStaticFiles(StaticFiles):
-    """Статика без кеширования — браузер всегда берёт свежие JS/CSS.
-
-    Для локального проекта в разработке это важнее, чем экономия трафика:
-    иначе после правок фронтенда браузер показывает старую закешированную версию.
+    """static without caching —  always latest JS/CSS.
     """
 
     def is_not_modified(self, response_headers, request_headers) -> bool:  # noqa: ARG002
-        return False  # отключаем ответы 304 Not Modified
+        return False  #  304 Not Modified
 
     async def get_response(self, path: str, scope: Scope):
         response = await super().get_response(path, scope)
@@ -49,32 +46,32 @@ async def lifespan(_: FastAPI):
 
 app = FastAPI(
     title="Local Services Map",
-    description="Системный поиск доступности локальных услуг с геолокацией",
+    description="System search for the availability of local services with geolocation",
     version="1.0.0",
     lifespan=lifespan,
 )
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # локальное приложение, всё на одном порту
+    allow_origins=["*"],  
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-app.include_router(auth.router, prefix="/api/auth", tags=["Авторизация"])
-app.include_router(services.router, prefix="/api/services", tags=["Заведения"])
-app.include_router(users.router, prefix="/api/users", tags=["Пользователь"])
-app.include_router(categories.router, prefix="/api/categories", tags=["Категории"])
-app.include_router(reviews.router, prefix="/api/reviews", tags=["Отзывы"])
+app.include_router(auth.router, prefix="/api/auth", tags=["Authorization"])
+app.include_router(services.router, prefix="/api/services", tags=["Establishments"])
+app.include_router(users.router, prefix="/api/users", tags=["User"])
+app.include_router(categories.router, prefix="/api/categories", tags=["ategories"])
+app.include_router(reviews.router, prefix="/api/reviews", tags=["Reviews"])
 
 
 @app.get("/api/config", tags=["Конфигурация"])
 async def get_config():
-    """Публичная конфигурация для фронтенда (ключ тайлов не хардкодится в JS)."""
+   
     return {
         "maptiler_api_key": settings.MAPTILER_API_KEY or None,
         "default_radius": 1000,
-        "default_center": {"lat": 51.2465, "lng": 22.5684},  # Люблин
+        "default_center": {"lat": 51.2465, "lng": 22.5684},  # Lublin
     }
 
 
@@ -91,7 +88,6 @@ async def index():
 
 @app.get("/sw.js", include_in_schema=False)
 async def service_worker():
-    # отдаётся из корня, чтобы scope service worker'а охватывал весь сайт
     return FileResponse(
         STATIC_DIR / "sw.js",
         media_type="application/javascript",

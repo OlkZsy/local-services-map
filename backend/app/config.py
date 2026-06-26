@@ -1,4 +1,4 @@
-"""Настройки приложения. Значения читаются из backend/.env (python-dotenv)."""
+"""config app. from backend/.env (python-dotenv)."""
 
 import os
 from pathlib import Path
@@ -25,10 +25,10 @@ class Settings:
     JWT_ALGORITHM: str = os.getenv("JWT_ALGORITHM", "HS256")
     JWT_EXPIRE_MINUTES: int = int(os.getenv("JWT_EXPIRE_MINUTES", "10080"))
 
-    # MapTiler (опционально — без ключа фронтенд переключается на тайлы OSM)
+    # MapTiler (optional)
     MAPTILER_API_KEY: str = os.getenv("MAPTILER_API_KEY", "")
 
-    # Кеширование Overpass
+    # cash Overpass
     CACHE_TTL_DAYS: int = int(os.getenv("CACHE_TTL_DAYS", "7"))
 
     DEBUG: bool = _as_bool(os.getenv("DEBUG", "true"))

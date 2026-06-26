@@ -1,544 +1,125 @@
-# Системный поиск доступности локальных услуг с геолокацией
+# Specyfikacja projektu
 
-> **Промпт проекта / Техническая спецификация**
-> Дипломный проект магистратуры. Локальное веб-приложение (`localhost`).
-> Версия 1.0
+## 1. Opis ogólny
 
----
+Projekt to aplikacja webowa do wyszukiwania usług lokalnych (aptek, sklepów,
+restauracji, banków itp.) z wykorzystaniem geolokalizacji użytkownika. Głównym
+celem projektu jest pokazanie zastosowania dokumentowej bazy danych MongoDB
+w aplikacji webowej — w szczególności modelu dokumentowego, indeksów oraz
+zapytań przestrzennych.
 
-## 0. Краткое описание для исполнителя (промпт)
+Aplikacja uruchamiana jest lokalnie (`localhost:8000`) i działa w przeglądarce
+na komputerze oraz telefonie (responsywny układ). Użytkownik widzi mapę
+wyśrodkowaną na swoim położeniu, wpisuje rodzaj obiektu, ustawia promień
+wyszukiwania, a na mapie pojawiają się znaczniki pasujących miejsc. Na dole
+wysuwa się panel z listą wyników, którą można sortować. Zalogowani użytkownicy
+mogą zapisywać miejsca ulubione, przeglądać historię wyszukiwań oraz wystawiać
+opinie.
 
-Ты разрабатываешь **локальное веб-приложение** — интерактивную карту поиска заведений (аптеки, больницы, рестораны, магазины и т.д.) с геолокацией пользователя на территории Польши.
+## 2. Stos technologiczny
 
-Приложение запускается локально (`localhost:8000`), работает в любом браузере (ПК, планшет, телефон — адаптивный дизайн). Пользователь видит карту, центрированную на своём местоположении, вводит тип заведения, задаёт радиус поиска — и на карте появляются маркеры подходящих мест. Снизу выезжает панель со списком результатов с возможностью сортировки. Авторизованные пользователи могут сохранять избранное и видеть историю поисков.
+### Backend
+- Python 3.11 — język programowania
+- FastAPI — framework REST API z automatyczną dokumentacją
+- Uvicorn — serwer ASGI
+- Motor — asynchroniczny sterownik MongoDB
+- Pydantic v2 — walidacja danych
+- python-jose — tokeny JWT
+- passlib + bcrypt — haszowanie haseł
+- httpx — zapytania do Overpass API
+- python-dotenv — konfiguracja ze zmiennych środowiskowych
 
-Стек строго соблюдается (раздел 2). Все эндпоинты, схемы БД и структура файлов заданы ниже. Хостинг не нужен — проект демонстрируется локально.
+### Baza danych
+- MongoDB 7 — baza dokumentowa, indeksy przestrzenne 2dsphere
+- MongoDB Compass — podgląd danych
 
----
+### Frontend
+- HTML5, CSS3, JavaScript (ES2022) — bez frameworków (aplikacja jednostronicowa)
+- Tailwind CSS (CDN) — układ responsywny
+- Leaflet 1.9.4 — mapa
+- Leaflet.markercluster — grupowanie znaczników
+- Lucide Icons — ikony
 
-## 1. Что представляет собой проект
+### Zewnętrzne API
+- Overpass API (OSM) — dane o obiektach
+- Nominatim (OSM) — geokodowanie adresów
+- MapTiler — kafelki mapy (opcjonalnie; bez klucza używane są kafelki OSM)
 
-Локальное веб-приложение — **карта поиска заведений** с геолокацией. Сценарий использования:
+## 3. Architektura systemu
 
-1. Пользователь открывает сайт в браузере.
-2. Видит карту, центрированную на его местоположении (через геолокацию браузера).
-3. Вводит в строку поиска тип заведения (например «apteka»).
-4. Задаёт радиус поиска в настройках (0.5–5 км).
-5. На карте появляются маркеры: активные (открыто сейчас) и неактивные (закрыто).
-6. Снизу выезжает раскрываемая панель со списком результатов.
-7. Список можно сортировать по расстоянию или по времени работы.
-8. Клик по маркеру/элементу списка → детали заведения.
-9. Авторизованный пользователь сохраняет избранные места и видит историю поисков.
-
-Приложение работает полностью локально — без хостинга, без оплаты.
-
----
-
-## 2. Стек технологий
-
-### Бэкенд
-
-| Компонент | Технология | Версия | Назначение |
-|---|---|---|---|
-| Язык | Python | 3.11+ | Основной язык |
-| Фреймворк | FastAPI | 0.110+ | REST API, автодокументация |
-| ASGI сервер | Uvicorn | 0.29+ | Запуск FastAPI |
-| MongoDB драйвер | Motor | 3.3+ | Асинхронная работа с MongoDB |
-| Валидация | Pydantic v2 | 2.6+ | Схемы запросов/ответов |
-| Аутентификация | python-jose | 3.3+ | JWT токены |
-| Хеширование паролей | passlib + bcrypt | 1.7+ | Безопасное хранение паролей |
-| HTTP клиент | httpx | 0.27+ | Запросы к Overpass API |
-| Переменные среды | python-dotenv | 1.0+ | Хранение секретов |
-| CORS | FastAPI middleware | встроен | Запросы с фронтенда |
-
-### База данных
-
-| Компонент | Технология | Назначение |
-|---|---|---|
-| Основная БД | MongoDB 7.0 | Документы, геоиндексы 2dsphere |
-| Хостинг БД | MongoDB Atlas (M0 Free) | Облачная БД, бесплатно |
-| Интерфейс (dev) | MongoDB Compass | Просмотр данных локально |
-
-### Фронтенд
-
-| Компонент | Технология | Версия | Назначение |
-|---|---|---|---|
-| Разметка | HTML5 | — | Структура (SPA, одна страница) |
-| Стили | CSS3 + CSS Variables | — | Кастомные стили, темы |
-| CSS фреймворк | Tailwind CSS | 3.x (CDN) | Адаптивность, утилиты |
-| JavaScript | Vanilla JS (ES2022) | — | Логика без фреймворков |
-| Карты | Leaflet.js | 1.9.4 | Рендеринг карты |
-| Тайлы карты | MapTiler | Free tier | Тайлы (похожи на Google) |
-| Кластеризация | Leaflet.markercluster | 1.5+ | Группировка маркеров |
-| HTTP запросы | Fetch API | встроен | Запросы к бэкенду |
-| Иконки | Lucide Icons | CDN | UI иконки |
-
-### Внешние API
-
-| API | Назначение | Лимит (бесплатно) |
-|---|---|---|
-| Overpass API (OSM) | Данные о заведениях по Польше | Без лимита (разумное использование) |
-| Nominatim API (OSM) | Геокодирование: адрес → координаты | 1 запрос/сек |
-| MapTiler | Тайлы карты | 100 000 тайлов/месяц |
-
-### Инструменты разработки
-
-| Инструмент | Назначение |
-|---|---|
-| Git + GitHub | Версионирование |
-| VS Code | Редактор кода |
-| MongoDB Compass | Просмотр БД |
-| REST Client (VS Code) / Postman | Тестирование API |
-| Python venv | Изоляция зависимостей |
-
----
-
-## 3. Архитектура системы
+Aplikacja działa w modelu klient–serwer. Ten sam serwer (FastAPI + Uvicorn)
+udostępnia REST API oraz pliki frontendu, wszystko na jednym porcie 8000.
 
 ```
-Браузер (localhost:8000)
+Przeglądarka (localhost:8000)
         │
-        ├── GET /          → FastAPI отдаёт index.html
-        ├── GET /static/*  → CSS, JS, изображения
-        │
+        ├── GET /          → index.html
+        ├── GET /static/*  → CSS, JS, ikony
         └── /api/*         → REST API
-                │
-                ├── /api/auth/*       → регистрация, вход, JWT
-                ├── /api/services/*   → поиск заведений
-                ├── /api/users/*      → профиль, избранное, история
-                └── /api/categories/* → типы заведений
+                ├── /api/auth/*       → rejestracja, logowanie, JWT
+                ├── /api/services/*   → wyszukiwanie obiektów
+                ├── /api/users/*      → profil, ulubione, historia
+                ├── /api/reviews/*    → opinie
+                └── /api/categories   → kategorie
                         │
-                        ├── MongoDB Atlas
-                        │   ├── users           (пользователи)
-                        │   ├── services_cache  (кеш заведений)
-                        │   ├── search_history  (история поисков)
-                        │   └── favorites       (избранное)
-                        │
-                        └── Overpass API (OSM)
-                            (если нет в кеше → запрос → сохранить в кеш)
+                        ├── MongoDB (users, services_cache, cache_areas,
+                        │            search_history, favorites, reviews)
+                        └── Overpass API (przy chybieniu bufora)
 ```
 
-**Принцип работы:** FastAPI выступает и как API-сервер, и как раздатчик статики (фронтенд). Всё работает на одном порту `8000`. Данные о заведениях берутся из Overpass API и кешируются в MongoDB, чтобы не запрашивать внешний API при каждом поиске.
+Dane o obiektach pobierane są z Overpass API i buforowane w MongoDB, żeby nie
+odpytywać usługi zewnętrznej przy każdym wyszukiwaniu.
 
----
+## 4. Baza danych
 
-## 4. Структура файлов проекта
+Sześć kolekcji: `users`, `services_cache`, `cache_areas`, `search_history`,
+`favorites`, `reviews`. Szczegółowy opis dokumentów i indeksów znajduje się
+w pliku [database_schema.md](database_schema.md).
 
-```
-local-services-map/
-│
-├── backend/
-│   ├── app/
-│   │   ├── __init__.py
-│   │   ├── main.py                  ← точка входа, FastAPI app
-│   │   ├── config.py                ← настройки из .env
-│   │   ├── database.py              ← подключение к MongoDB
-│   │   │
-│   │   ├── models/
-│   │   │   ├── __init__.py
-│   │   │   ├── user.py              ← схема пользователя
-│   │   │   ├── service.py           ← схема заведения
-│   │   │   └── search.py            ← схема поиска/истории
-│   │   │
-│   │   ├── routes/
-│   │   │   ├── __init__.py
-│   │   │   ├── auth.py              ← /api/auth/*
-│   │   │   ├── services.py          ← /api/services/*
-│   │   │   ├── users.py             ← /api/users/*
-│   │   │   └── categories.py        ← /api/categories/*
-│   │   │
-│   │   ├── services/
-│   │   │   ├── __init__.py
-│   │   │   ├── overpass.py          ← запросы к Overpass API
-│   │   │   ├── geocoding.py         ← Nominatim геокодирование
-│   │   │   ├── cache.py             ← логика кеширования
-│   │   │   └── auth_service.py      ← JWT, хеширование паролей
-│   │   │
-│   │   └── static/                  ← фронтенд (отдаётся FastAPI)
-│   │       ├── index.html           ← единственная HTML страница (SPA)
-│   │       ├── css/
-│   │       │   └── style.css        ← кастомные стили
-│   │       └── js/
-│   │           ├── app.js           ← главный модуль
-│   │           ├── map.js           ← логика карты Leaflet
-│   │           ├── search.js        ← логика поиска
-│   │           ├── ui.js            ← панели, анимации, список
-│   │           └── auth.js          ← вход/выход, профиль
-│   │
-│   ├── .env                         ← секреты (в .gitignore!)
-│   ├── .env.example                 ← шаблон
-│   └── requirements.txt
-│
-├── docs/
-│   ├── specification.md             ← этот документ
-│   ├── api_reference.md             ← описание эндпоинтов
-│   └── database_schema.md           ← схемы коллекций
-│
-├── data/
-│   └── seed_data.json               ← опциональные тестовые данные
-│
-├── .gitignore
-└── README.md
-```
+Najważniejsze indeksy:
+- `2dsphere` na polu `location` w `services_cache` — wyszukiwanie przestrzenne;
+- TTL na `cache_expires_at` — automatyczne usuwanie przeterminowanego bufora;
+- indeksy unikatowe zapobiegające duplikatom kont, ulubionych i opinii.
 
----
+## 5. API
 
-## 5. База данных — коллекции и схемы
+Pełny opis punktów końcowych znajduje się w pliku
+[api_reference.md](api_reference.md). Główne grupy: autoryzacja, obiekty
+(wyszukiwanie), dane użytkownika, opinie oraz kategorie. Punkty chronione
+wymagają tokenu JWT w nagłówku `Authorization: Bearer <token>`.
 
-### Коллекция `users`
+## 6. Kategorie obiektów
 
-```json
-{
-  "_id": "ObjectId",
-  "email": "user@example.com",
-  "username": "Jan Kowalski",
-  "password_hash": "bcrypt hash",
-  "created_at": "2024-01-01T00:00:00Z",
-  "last_login": "2024-01-01T00:00:00Z",
-  "settings": {
-    "default_radius": 1000,
-    "language": "pl",
-    "theme": "light"
-  }
-}
-```
-
-Индексы: уникальный по `email`.
-
-### Коллекция `services_cache`
-
-```json
-{
-  "_id": "ObjectId",
-  "osm_id": "123456789",
-  "name": "Apteka Centrum",
-  "category": "pharmacy",
-  "address": {
-    "street": "ul. Krakowskie Przedmieście 5",
-    "city": "Lublin",
-    "postcode": "20-001"
-  },
-  "location": {
-    "type": "Point",
-    "coordinates": [22.5684, 51.2465]
-  },
-  "opening_hours": "Mo-Fr 08:00-20:00; Sa 09:00-15:00",
-  "phone": "+48 81 123 456",
-  "website": "https://example.com",
-  "cached_at": "2024-01-01T00:00:00Z",
-  "cache_expires_at": "2024-01-08T00:00:00Z"
-}
-```
-
-Индексы:
-- `2dsphere` на поле `location` (геопоиск)
-- обычный на `category` (фильтрация)
-- TTL-индекс на `cache_expires_at` (автоудаление устаревших)
-
-> **Важно:** в GeoJSON координаты хранятся в порядке `[долгота, широта]` (`[lng, lat]`), а не наоборот.
-
-### Коллекция `search_history`
-
-```json
-{
-  "_id": "ObjectId",
-  "user_id": "ObjectId (ref users)",
-  "query": "apteka",
-  "category": "pharmacy",
-  "location": {
-    "type": "Point",
-    "coordinates": [22.5684, 51.2465]
-  },
-  "radius": 1000,
-  "results_count": 12,
-  "searched_at": "2024-01-01T00:00:00Z"
-}
-```
-
-Индексы: по `user_id` + `searched_at` (сортировка истории).
-
-### Коллекция `favorites`
-
-```json
-{
-  "_id": "ObjectId",
-  "user_id": "ObjectId (ref users)",
-  "service_osm_id": "123456789",
-  "service_name": "Apteka Centrum",
-  "service_category": "pharmacy",
-  "service_location": {
-    "type": "Point",
-    "coordinates": [22.5684, 51.2465]
-  },
-  "note": "Дежурная аптека",
-  "saved_at": "2024-01-01T00:00:00Z"
-}
-```
-
-Индексы: уникальный составной по `user_id` + `service_osm_id` (нет дублей).
-
----
-
-## 6. API — все эндпоинты
-
-### Авторизация — `/api/auth`
-
-| Метод | Путь | Тело / параметры | Ответ |
-|---|---|---|---|
-| POST | `/api/auth/register` | `{email, username, password}` | данные пользователя |
-| POST | `/api/auth/login` | `{email, password}` | `{access_token, token_type}` |
-| POST | `/api/auth/logout` | — | подтверждение |
-| GET | `/api/auth/me` | (JWT в заголовке) | данные текущего пользователя |
-
-### Заведения — `/api/services`
-
-| Метод | Путь | Параметры | Ответ |
-|---|---|---|---|
-| GET | `/api/services/search` | `lat`, `lng`, `radius` (500–5000 м), `category`, `sort` (`distance` \| `opening_hours`) | список заведений с расстоянием |
-| GET | `/api/services/{osm_id}` | — | детали одного заведения |
-
-Пример запроса:
-```
-GET /api/services/search?lat=51.2465&lng=22.5684&radius=1000&category=pharmacy&sort=distance
-```
-
-### Пользователь — `/api/users`
-
-| Метод | Путь | Тело | Назначение |
-|---|---|---|---|
-| GET | `/api/users/history` | — | история поисков |
-| DELETE | `/api/users/history` | — | очистить историю |
-| GET | `/api/users/favorites` | — | список избранного |
-| POST | `/api/users/favorites` | `{osm_id}` | добавить в избранное |
-| DELETE | `/api/users/favorites/{osm_id}` | — | удалить из избранного |
-| PATCH | `/api/users/settings` | `{default_radius, theme, language}` | обновить настройки |
-
-### Категории — `/api/categories`
-
-| Метод | Путь | Ответ |
+| Klucz | Nazwa (PL) | Tag OSM |
 |---|---|---|
-| GET | `/api/categories` | список категорий с иконками и названиями |
+| `pharmacy` | Apteka | `amenity=pharmacy` |
+| `hospital` | Szpital | `amenity=hospital` |
+| `clinic` | Przychodnia | `amenity=clinic` |
+| `supermarket` | Supermarket | `shop=supermarket` |
+| `convenience` | Sklep spożywczy | `shop=convenience` |
+| `restaurant` | Restauracja | `amenity=restaurant` |
+| `cafe` | Kawiarnia | `amenity=cafe` |
+| `fast_food` | Fast food | `amenity=fast_food` |
+| `bank` | Bank | `amenity=bank` |
+| `atm` | Bankomat | `amenity=atm` |
+| `fuel` | Stacja paliw | `amenity=fuel` |
+| `dentist` | Dentysta | `amenity=dentist` |
+| `post_office` | Poczta | `amenity=post_office` |
 
-Все защищённые эндпоинты (`/api/users/*`, `/api/auth/me`) требуют JWT-токен в заголовке `Authorization: Bearer <token>`.
+## 7. Buforowanie danych
 
----
+Klucz bufora to `kategoria + geohash` obszaru. Przy wyszukiwaniu sprawdzany jest
+aktualny wpis dla danej kategorii i komórki; przy jego braku dane pobierane są
+z Overpass, zapisywane w buforze i zwracane. Bufor żyje 7 dni (`CACHE_TTL_DAYS`),
+a przeterminowane wpisy usuwa indeks TTL.
 
-## 7. Категории заведений
+## 8. Status „otwarte / zamknięte”
 
-| Ключ | Название (PL) | OSM тег | Иконка |
-|---|---|---|---|
-| `pharmacy` | Apteka | `amenity=pharmacy` | 💊 |
-| `hospital` | Szpital | `amenity=hospital` | 🏥 |
-| `clinic` | Przychodnia | `amenity=clinic` | 🩺 |
-| `supermarket` | Supermarket | `shop=supermarket` | 🛒 |
-| `convenience` | Sklep spożywczy | `shop=convenience` | 🏪 |
-| `restaurant` | Restauracja | `amenity=restaurant` | 🍽️ |
-| `cafe` | Kawiarnia | `amenity=cafe` | ☕ |
-| `fast_food` | Fast food | `amenity=fast_food` | 🍔 |
-| `bank` | Bank | `amenity=bank` | 🏦 |
-| `atm` | Bankomat | `amenity=atm` | 💳 |
-| `fuel` | Stacja paliw | `amenity=fuel` | ⛽ |
-| `dentist` | Dentysta | `amenity=dentist` | 🦷 |
-| `post_office` | Poczta | `amenity=post_office` | 📮 |
+Status wyznaczany jest z pola `opening_hours` (format OSM, np.
+`Mo-Fr 08:00-20:00`) przez własny parser. Gdy pole jest puste lub nierozpoznane,
+status przyjmuje wartość „brak danych”.
 
----
+## 9. Uruchomienie
 
-## 8. Интерфейс
-
-### Главный экран (карта)
-
-```
-┌─────────────────────────────────────┐
-│ [🔍 Szukaj: apteka...    ] [👤] [⚙️] │  ← хедер (фиксированный)
-├─────────────────────────────────────┤
-│                                     │
-│         КАРТА (Leaflet)             │
-│                                     │
-│    📍 маркер пользователя           │
-│    🟡 активные маркеры              │
-│    ⚪ неактивные (закрыто сейчас)   │
-│                                 [+] │  ← зум
-│                                 [-] │
-├─────────────────────────────────────┤
-│ ▲ Wyniki: 12 miejsc    [↕ Sortuj]  │  ← панель снизу (выезжает)
-│ ─────────────────────────────────── │
-│ [Apteka Centrum        0.3 km] [⭐] │
-│ [Apteka Dbam o Zdrowie 0.7 km] [⭐] │
-│ ...                                 │
-└─────────────────────────────────────┘
-```
-
-**Поведение карты:**
-- При загрузке — геолокация браузера, центр на пользователе, синий маркер.
-- Если геолокация отклонена — центр на Люблине (`51.2465, 22.5684`).
-- Клик на маркер → popup: название, адрес, статус (открыто/закрыто), телефон, кнопка «Избранное».
-- Маркеры кластеризуются при отдалении.
-- Круг радиуса поиска отображается на карте.
-
-**Строка поиска:**
-- Ввод текста → автодополнение из категорий (выпадающий список).
-- Enter или кнопка → поиск.
-- Кнопка «✕» → очистить и сбросить маркеры.
-
-**Нижняя панель результатов:**
-- По умолчанию скрыта (видна плашка «▲ Wyniki»).
-- Свайп вверх / клик → раскрывается на 50% экрана.
-- Свайп выше → полный экран (список без карты).
-- Сортировка: по расстоянию / по времени работы (сначала открытые).
-- Каждый элемент: название, категория, расстояние, статус (🟢 открыто / 🔴 закрыто), кнопка избранного.
-
-### Панель настроек (⚙️)
-
-```
-Radius wyszukiwania: [════●════] 1.5 km
-Motyw:               [Jasny ○] [Ciemny ●]
-Język:               [PL] [RU] [EN]
-[Wyczyść historię wyszukiwań]
-```
-
-### Панель профиля (👤)
-
-**Не авторизован:**
-```
-[Zaloguj się]
-[Zarejestruj się]
-```
-
-**Авторизован:**
-```
-Jan Kowalski
-jan@example.com
-
-[⭐ Ulubione miejsca   →]
-[🕐 Historia wyszukiwań →]
-[⚙️ Ustawienia          →]
-[Wyloguj się]
-```
-
----
-
-## 9. Логика кеширования данных
-
-```
-Пользователь ищет "apteka" в радиусе 1 км
-        ↓
-Проверка MongoDB: есть актуальный кеш
-для этой категории в этом районе?
-        ↓
-  ДА (кеш < 7 дней)          НЕТ (нет/устарел)
-        ↓                           ↓
-Берём из MongoDB            Запрос к Overpass API
-        ↓                           ↓
-  Возвращаем               Сохраняем в MongoDB
-  результат                         ↓
-                             Возвращаем результат
-```
-
-- Кеш хранится 7 дней (настраивается через `CACHE_TTL_DAYS`).
-- Ключ кеша — `category + geohash(область)`.
-- TTL-индекс MongoDB автоматически удаляет устаревшие записи.
-
----
-
-## 10. Расчёт расстояния и статуса «открыто/закрыто»
-
-- **Расстояние** до пользователя вычисляется MongoDB через оператор `$geoNear` (возвращает дистанцию в метрах) либо формулой гаверсинуса на бэкенде.
-- **Статус «открыто сейчас»** определяется парсингом поля `opening_hours` (формат OSM, например `Mo-Fr 08:00-20:00`). Для этого используется библиотека парсинга OSM opening_hours или собственная логика. Если поле отсутствует — статус «нет данных».
-
----
-
-## 11. Переменные среды (`.env`)
-
-```env
-# MongoDB
-MONGODB_URL=mongodb+srv://user:password@cluster.mongodb.net/
-MONGODB_DB_NAME=local_services_map
-
-# JWT
-JWT_SECRET_KEY=super-secret-key-minimum-32-chars
-JWT_ALGORITHM=HS256
-JWT_EXPIRE_MINUTES=10080
-
-# MapTiler
-MAPTILER_API_KEY=your-maptiler-key
-
-# Кеш
-CACHE_TTL_DAYS=7
-
-# Режим разработки
-DEBUG=true
-```
-
-Файл `.env` **обязательно** в `.gitignore`. В репозиторий коммитится только `.env.example` без реальных значений.
-
----
-
-## 12. Порядок реализации (по шагам)
-
-| Шаг | Задача |
-|---|---|
-| 1 | Настройка окружения и Git-репозитория |
-| 2 | MongoDB Atlas — создание БД, пользователя, индексов |
-| 3 | FastAPI — базовая структура + подключение к БД |
-| 4 | Система авторизации (регистрация, вход, JWT) |
-| 5 | Интеграция Overpass API + кеширование в MongoDB |
-| 6 | API эндпоинты поиска с геозапросами |
-| 7 | Фронтенд — карта Leaflet + MapTiler тайлы |
-| 8 | Фронтенд — строка поиска + маркеры на карте |
-| 9 | Фронтенд — нижняя панель с результатами |
-| 10 | Фронтенд — профиль, избранное, история |
-| 11 | Адаптивный дизайн (мобильные устройства) |
-| 12 | Тестирование + финальная документация |
-
----
-
-## 13. Запуск проекта (локально)
-
-```bash
-# 1. Клонировать репозиторий
-git clone https://github.com/<user>/local-services-map.git
-cd local-services-map/backend
-
-# 2. Создать виртуальное окружение
-python -m venv venv
-source venv/bin/activate        # Linux/Mac
-venv\Scripts\activate           # Windows
-
-# 3. Установить зависимости
-pip install -r requirements.txt
-
-# 4. Создать .env по образцу .env.example и заполнить значения
-
-# 5. Запустить сервер
-uvicorn app.main:app --reload --port 8000
-
-# 6. Открыть в браузере
-#    Приложение:      http://localhost:8000
-#    Документация API: http://localhost:8000/docs
-```
-
----
-
-## 14. Метрики и критерии готовности
-
-| Критерий | Целевое значение |
-|---|---|
-| Время ответа поискового запроса (из кеша) | < 200 мс |
-| Время ответа (через Overpass API) | < 3 с |
-| Точность геолокации | ±10 м (зависит от браузера) |
-| Адаптивность | корректная работа на экранах от 320 px |
-| Тестовый набор | 50–100+ заведений Люблина |
-
-Проект считается готовым, когда работают все 4 группы эндпоинтов, фронтенд корректно отображает карту с маркерами и списком, авторизация сохраняет избранное и историю, а интерфейс адаптивен.
-
----
-
-## 15. Возможности дальнейшего развития (опционально, для раздела «Выводы»)
-
-- Система оценок и отзывов пользователей
-- GPS-навигация до выбранной точки
-- PWA (установка как мобильное приложение, офлайн-режим)
-- Redis для кеширования вместо/вместе с MongoDB
-- Кластеризация маркеров и lazy loading для больших наборов
-- Тепловые карты популярности категорий
-- Деплой на Railway/Render для онлайн-доступа (30 минут работы)
+Instrukcja instalacji i uruchomienia znajduje się w pliku
+[setup_guide.md](setup_guide.md).

@@ -1,4 +1,4 @@
-"""Pydantic-схемы отзывов и оценок мест."""
+
 
 from datetime import datetime
 

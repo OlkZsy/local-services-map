@@ -1,8 +1,4 @@
-"""Минимальная реализация geohash (без внешних зависимостей).
 
-Используется как ключ области кеширования: точность 5 символов
-соответствует ячейке примерно 4.9 x 4.9 км.
-"""
 
 _BASE32 = "0123456789bcdefghjkmnpqrstuvwxyz"
 
@@ -13,7 +9,7 @@ def encode(lat: float, lng: float, precision: int = 5) -> str:
     result = []
     bit = 0
     char_index = 0
-    even = True  # чётные биты — долгота, нечётные — широта
+    even = True  
 
     while len(result) < precision:
         if even:
@@ -43,7 +39,7 @@ def encode(lat: float, lng: float, precision: int = 5) -> str:
 
 
 def decode_center(geohash: str) -> tuple[float, float]:
-    """Возвращает (lat, lng) центра ячейки geohash."""
+
     lat_range = [-90.0, 90.0]
     lng_range = [-180.0, 180.0]
     even = True

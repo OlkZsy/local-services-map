@@ -1,4 +1,4 @@
-"""Pydantic-схемы заведений."""
+
 
 from pydantic import BaseModel
 
@@ -19,8 +19,8 @@ class ServiceOut(BaseModel):
     opening_hours: str | None = None
     phone: str | None = None
     website: str | None = None
-    distance: float | None = None  # метры до пользователя
-    is_open: bool | None = None  # None — нет данных о часах работы
+    distance: float | None = None  
+    is_open: bool | None = None  
 
 
 class SearchResponse(BaseModel):

@@ -1,4 +1,4 @@
-"""Маршруты авторизации: /api/auth/*"""
+""" /api/auth/*"""
 
 from datetime import datetime, timezone
 
@@ -18,7 +18,7 @@ router = APIRouter()
 
 def _to_user_out(user: dict) -> UserOut:
     raw_settings = dict(user.get("settings", {}))
-    # язык ru больше не поддерживается — мягко приводим старые записи к pl
+
     if raw_settings.get("language") not in ("pl", "en"):
         raw_settings["language"] = "pl"
     return UserOut(
@@ -72,7 +72,7 @@ async def login(data: UserLogin):
 
 @router.post("/logout")
 async def logout():
-    # JWT не хранит состояние на сервере — клиент просто удаляет токен.
+
     return {"message": "Выход выполнен"}
 
 

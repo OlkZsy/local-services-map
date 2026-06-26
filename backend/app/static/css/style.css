@@ -141,7 +141,7 @@ html.dark .leaflet-tile { filter: brightness(0.7) contrast(1.1); }
 }
 .autocomplete-item:hover, .autocomplete-item.active { background: var(--primary-soft); }
 
-/* ===== Карта ===== */
+/* ===== map ===== */
 #map {
   position: fixed;
   inset: var(--header-h) 0 0 0;
@@ -167,7 +167,7 @@ html.dark .leaflet-tile { filter: brightness(0.7) contrast(1.1); }
 }
 .locate-btn svg { width: 22px; height: 22px; }
 
-/* маркер пользователя */
+/* user marker */
 .user-marker {
   width: 18px;
   height: 18px;
@@ -177,7 +177,7 @@ html.dark .leaflet-tile { filter: brightness(0.7) contrast(1.1); }
   box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.3);
 }
 
-/* маркеры заведений */
+/* marker */
 .poi-marker {
   display: grid;
   place-items: center;
@@ -221,7 +221,7 @@ html.dark .leaflet-tile { filter: brightness(0.7) contrast(1.1); }
 .popup .dir-btn:hover { filter: brightness(1.1); }
 .popup .fav-btn { margin: 0; }
 
-/* ===== Нижняя панель (bottom sheet) ===== */
+/* ===== bottom sheet ===== */
 .sheet {
   position: fixed;
   inset: var(--header-h) 0 0 0;
@@ -451,7 +451,7 @@ input[type="range"] { width: 100%; accent-color: var(--primary); }
   z-index: 1150;
 }
 
-/* ===== Toast ===== */
+/* ===== toast ===== */
 .toast {
   position: fixed;
   left: 50%;
@@ -468,7 +468,7 @@ input[type="range"] { width: 100%; accent-color: var(--primary); }
   text-align: center;
 }
 
-/* ===== Спиннер загрузки ===== */
+/* ===== loading circle ===== */
 .spinner {
   position: fixed;
   inset: var(--header-h) 0 0 0;
@@ -491,7 +491,7 @@ input[type="range"] { width: 100%; accent-color: var(--primary); }
 
 .empty-icon { font-size: 30px; margin-bottom: 6px; opacity: 0.6; }
 
-/* ===== Отзывы ===== */
+/* ===== reviews ===== */
 .popup .reviews-btn {
   flex: 1;
   padding: 7px 10px;
@@ -557,7 +557,7 @@ input[type="range"] { width: 100%; accent-color: var(--primary); }
   padding: 2px 4px;
 }
 
-/* ===== Адаптивность ===== */
+/* ===== adaptic ===== */
 @media (max-width: 480px) {
   .logo { display: none; }
   #header { padding: 0 8px; gap: 6px; }

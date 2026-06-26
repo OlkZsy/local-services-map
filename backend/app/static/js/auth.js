@@ -14,7 +14,6 @@ async function loadSession() {
   if (!state.token) return;
   try {
     state.user = await api('/auth/me');
-    // настройки с сервера имеют приоритет над сохранёнными локально
     Object.assign(state.settings, state.user.settings);
     saveLocalSettings();
     applyTheme(state.settings.theme);
@@ -37,7 +36,7 @@ function setToken(token) {
 }
 
 async function logout() {
-  try { await api('/auth/logout', { method: 'POST' }); } catch { /* токен мог истечь */ }
+  try { await api('/auth/logout', { method: 'POST' }); } catch { /* token expired */ }
   state.token = null;
   state.user = null;
   state.favorites.clear();
@@ -191,7 +190,7 @@ export async function syncSettings() {
         language: state.settings.language,
       },
     });
-  } catch { /* не критично: настройки уже сохранены локально */ }
+  } catch { /* local settings */ }
 }
 
 function openAuthModal(mode) {
