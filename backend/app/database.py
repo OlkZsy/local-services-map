@@ -23,7 +23,7 @@ async def init_db() -> None:
     _db = _client[settings.MONGODB_DB_NAME]
     try:
         await _create_indexes(_db)
-        logger.info("MongoDB подключена, индексы созданы")
+        logger.info("MongoDB connected, indexes created")
     except Exception as exc:  
         logger.warning(
             "Couldn't connect to MongoDB (%s). "

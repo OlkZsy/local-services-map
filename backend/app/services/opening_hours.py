@@ -41,7 +41,7 @@ def _parse_days(part: str) -> list[int] | None:
 
 
 def _parse_time(value: str) -> int | None:
-    """«HH:MM» -> минуты от полуночи (24:00 = 1440)."""
+    """'HH:MM' -> minutes from midnight (24:00 = 1440)."""
     hours, sep, minutes = value.strip().partition(":")
     if not sep:
         return None

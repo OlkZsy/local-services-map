@@ -48,7 +48,7 @@ async def search_services(
     if category_def is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Неизвестная категория: {category}",
+            detail=f"Unknown category: {category}",
         )
 
     db = get_db()

@@ -36,7 +36,7 @@ async def register(data: UserCreate):
     if await db.users.find_one({"email": data.email}):
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
-            detail="Пользователь с таким email уже существует",
+            detail="A user with this email already exists",
         )
 
     now = datetime.now(timezone.utc)
@@ -60,7 +60,7 @@ async def login(data: UserLogin):
     if user is None or not verify_password(data.password, user["password_hash"]):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Неверный email или пароль",
+            detail="Invalid email or password",
         )
 
     await db.users.update_one(
@@ -73,7 +73,7 @@ async def login(data: UserLogin):
 @router.post("/logout")
 async def logout():
 
-    return {"message": "Выход выполнен"}
+    return {"message": "Logged out"}
 
 
 @router.get("/me", response_model=UserOut)
