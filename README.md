@@ -5,8 +5,8 @@ banks — built on a document database with geospatial queries.
 
 `FastAPI` · `MongoDB` · `JavaScript` · `Leaflet` · `PWA`
 
-<!-- TODO: add a screenshot, e.g. docs/screenshots/map.png -->
-![Search results shown on the map](docs/screenshots/map.png)
+![Search results shown on the map] <img width="921" height="532" alt="image" src="https://github.com/user-attachments/assets/2381681d-4b1c-47d7-8261-c8d6a0519c1e" />
+
 
 ---
 
